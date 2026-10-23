@@ -271,6 +271,7 @@
     cursor: pointer;
     transition: background .15s, color .15s;
   }
+  .seg[hidden] { display: none; }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); }
   .seg button:focus-visible, .primary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .primary {
@@ -299,20 +300,20 @@
 <main class="app">
   <header>
     <h1>Connect Four</h1>
-    <p class="sub">Line up four before the computer does.</p>
+    <p class="sub" id="sub">Line up four before the computer does.</p>
   </header>
 
   <section class="score" aria-label="Score">
     <div class="tile you" id="tileYou">
       <span class="chip p1"></span>
-      <div><div class="label">You</div><div class="num" id="scoreYou">0</div></div>
+      <div><div class="label" id="labelYou">You</div><div class="num" id="scoreYou">0</div></div>
     </div>
     <div class="tile draws">
       <div class="label">Draws</div><div class="num" id="scoreDraw">0</div>
     </div>
     <div class="tile ai" id="tileAi">
       <span class="chip p2"></span>
-      <div><div class="label">Computer</div><div class="num" id="scoreAi">0</div></div>
+      <div><div class="label" id="labelAi">Computer</div><div class="num" id="scoreAi">0</div></div>
     </div>
   </section>
 
@@ -338,6 +339,10 @@
   </div>
 
   <div class="controls">
+    <div class="seg" role="group" aria-label="Opponent" id="mode">
+      <button type="button" data-mode="ai">vs Computer</button>
+      <button type="button" data-mode="pvp">2 Players</button>
+    </div>
     <div class="seg" role="group" aria-label="Difficulty" id="difficulty">
       <button type="button" data-level="easy">Easy</button>
       <button type="button" data-level="medium">Medium</button>
@@ -382,8 +387,12 @@
   let hoverCol = 3;
   let lastDisc = null;
   let difficulty = load("c4-difficulty", "medium");
+  let mode = load("c4-mode", "ai");            // "ai" = vs computer, "pvp" = two players
   let nextFirst = HUMAN;
-  const score = load("c4-score", { you: 0, ai: 0, draw: 0 });
+  // Each mode keeps its own tally. In two-player mode "you" is Red and "ai" is Yellow.
+  const SCORE_KEY = { ai: "c4-score", pvp: "c4-score-pvp" };
+  const NAMES = ["Red", "Yellow"];
+  let score = load(SCORE_KEY[mode], { you: 0, ai: 0, draw: 0 });
 
   // ---------- DOM ----------
   const $ = id => document.getElementById(id);
@@ -554,13 +563,30 @@
     }
   }
 
+  function renderMode() {
+    const pvp = mode === "pvp";
+    for (const b of document.querySelectorAll("#mode button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
+    }
+    $("difficulty").hidden = pvp;
+    $("labelYou").textContent = pvp ? NAMES[0] : "You";
+    $("labelAi").textContent = pvp ? NAMES[1] : "Computer";
+    $("sub").textContent = pvp ? "Take turns — first to line up four wins."
+                               : "Line up four before the computer does.";
+  }
+
+  const isHumanTurn = () => mode === "pvp" || turn === HUMAN;
+  const moveText = p => mode === "pvp" ? `${NAMES[p - 1]}'s move` : "Your move";
+
   function setHover(c) {
     hoverCol = c;
     ghost.style.setProperty("--hc", c);
   }
 
   function updateInteractivity() {
-    const humanTurn = !over && !busy && turn === HUMAN;
+    const humanTurn = !over && !busy && isHumanTurn();
+    ghost.classList.toggle("p1", turn === 1);
+    ghost.classList.toggle("p2", turn === 2);
     ghost.classList.toggle("hidden", !humanTurn);
     colButtons.forEach((b, c) => { b.disabled = !humanTurn || top[c] < 0; });
   }
@@ -590,8 +616,10 @@
     if (line) {
       over = true;
       const winner = grid[line[0][0]][line[0][1]];
-      if (winner === HUMAN) { score.you++; setStatus("You win! Nicely played.", HUMAN); }
-      else { score.ai++; setStatus("The computer wins this one.", AI); }
+      if (winner === HUMAN) score.you++; else score.ai++;
+      if (mode === "pvp") setStatus(`${NAMES[winner - 1]} wins!`, winner);
+      else if (winner === HUMAN) setStatus("You win! Nicely played.", HUMAN);
+      else setStatus("The computer wins this one.", AI);
       for (const [r, c] of line) discsEl.querySelector(`[data-pos="${r},${c}"]`).classList.add("win");
       discsEl.classList.add("done");
       if (lastDisc) lastDisc.classList.remove("last");
@@ -606,7 +634,7 @@
       setStatus("It's a draw.", 0);
     }
     if (over) {
-      save("c4-score", score);
+      save(SCORE_KEY[mode], score);
       renderScore();
       $("newGame").textContent = "Play again";
       updateInteractivity();
@@ -615,16 +643,21 @@
   }
 
   async function humanMove(c) {
-    if (over || busy || turn !== HUMAN || top[c] < 0) return;
+    if (over || busy || !isHumanTurn() || top[c] < 0) return;
     const id = gameId;
     busy = true;
     updateInteractivity();
-    await drop(c, HUMAN);
+    await drop(c, turn);
     if (id !== gameId) return;
     busy = false;
     if (checkEnd()) return;
-    turn = AI;
-    await aiTurn();
+    turn = 3 - turn;
+    if (mode === "pvp") {
+      setStatus(moveText(turn), turn);
+      updateInteractivity();
+    } else {
+      await aiTurn();
+    }
   }
 
   async function aiTurn() {
@@ -658,8 +691,8 @@
     $("newGame").textContent = "New game";
     turn = nextFirst;
     nextFirst = 3 - nextFirst;   // alternate who starts
-    if (turn === HUMAN) {
-      setStatus("Your move", HUMAN);
+    if (isHumanTurn()) {
+      setStatus(moveText(turn), turn);
       updateInteractivity();
     } else {
       aiTurn();
@@ -675,6 +708,17 @@
     save("c4-difficulty", difficulty);
     renderDifficulty();
   });
+  $("mode").addEventListener("click", e => {
+    const b = e.target.closest("button[data-mode]");
+    if (!b || b.dataset.mode === mode) return;
+    mode = b.dataset.mode;
+    save("c4-mode", mode);
+    score = load(SCORE_KEY[mode], { you: 0, ai: 0, draw: 0 });
+    nextFirst = HUMAN;
+    renderMode();
+    renderScore();
+    newGame();
+  });
   document.addEventListener("keydown", e => {
     if (e.target.closest(".controls")) return;
     if (e.key === "ArrowLeft") { setHover(Math.max(0, hoverCol - 1)); e.preventDefault(); }
@@ -683,6 +727,7 @@
     else if (/^[1-7]$/.test(e.key)) { setHover(+e.key - 1); humanMove(+e.key - 1); }
   });
 
+  renderMode();
   renderScore();
   renderDifficulty();
   newGame();
