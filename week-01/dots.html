@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dots and Boxes</title>
+<style>
+  :root {
+    --bg: #f3f0e8;
+    --surface: #ffffff;
+    --text: #1d1f24;
+    --muted: #6b6f78;
+    --line: #e3ded3;
+    --guide: #e1dbcf;
+    --dot: #3a3d45;
+    --p1: #e5484d;
+    --p2: #2f6fe4;
+    --box-alpha: .2;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161b;
+      --surface: #1d2027;
+      --text: #eceef2;
+      --muted: #9298a4;
+      --line: #2c3039;
+      --guide: #323641;
+      --dot: #c9ccd4;
+      --p1: #ff6369;
+      --p2: #5b8cf5;
+      --box-alpha: .3;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161b;
+    --surface: #1d2027;
+    --text: #eceef2;
+    --muted: #9298a4;
+    --line: #2c3039;
+    --guide: #323641;
+    --dot: #c9ccd4;
+    --p1: #ff6369;
+    --p2: #5b8cf5;
+    --box-alpha: .3;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 28px 16px 40px;
+  }
+  .app {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  header { text-align: center; }
+  h1 {
+    margin: 0;
+    font-size: 30px;
+    letter-spacing: -0.02em;
+    font-weight: 750;
+  }
+  .sub { margin: 2px 0 0; color: var(--muted); }
+
+  /* Scoreboard */
+  .score {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 440px;
+  }
+  .tile {
+    background: var(--surface);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 9px 13px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color .2s, transform .2s;
+  }
+  .tile.p1.active, .tile.p1.winner { border-color: var(--p1); transform: translateY(-1px); }
+  .tile.p2.active, .tile.p2.winner { border-color: var(--p2); transform: translateY(-1px); }
+  .chip { width: 20px; height: 20px; border-radius: 6px; flex: none; }
+  .chip.p1 { background: var(--p1); }
+  .chip.p2 { background: var(--p2); }
+  .tile .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .tile .num { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tile .wins { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 420px) {
+    .score { gap: 8px; }
+    .tile { padding: 8px 10px; gap: 8px; }
+  }
+  .tile.left { flex-direction: column; gap: 0; justify-content: center; padding: 9px 16px; text-align: center; }
+  .tile.p2 { flex-direction: row-reverse; text-align: right; }
+  .num.bump { animation: bump .35s ease-out; }
+  @keyframes bump { 40% { transform: scale(1.25); } }
+
+  /* Status */
+  .status {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+  .status .chip { width: 13px; height: 13px; border-radius: 4px; }
+  .status.thinking .chip { animation: bob .9s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-3px); } }
+
+  /* Board */
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 8px;
+  }
+  .board {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .edge {
+    stroke: var(--guide);
+    stroke-width: 3;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    transition: stroke .12s, stroke-width .12s, stroke-opacity .12s;
+    pointer-events: none;
+  }
+  .board:not(.locked)[data-turn="1"] .edge.hover { stroke: var(--p1); stroke-opacity: .45; stroke-width: 7; }
+  .board:not(.locked)[data-turn="2"] .edge.hover { stroke: var(--p2); stroke-opacity: .45; stroke-width: 7; }
+  .edge.drawn {
+    stroke-width: 7;
+    stroke-opacity: 1;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .edge.drawn.h { animation: growX .22s ease-out; }
+  .edge.drawn.v { animation: growY .22s ease-out; }
+  @keyframes growX { from { transform: scaleX(0); } }
+  @keyframes growY { from { transform: scaleY(0); } }
+  .edge.p1 { stroke: var(--p1); }
+  .edge.p2 { stroke: var(--p2); }
+  .edge.last.p1 { filter: drop-shadow(0 0 4px var(--p1)); }
+  .edge.last.p2 { filter: drop-shadow(0 0 4px var(--p2)); }
+  .dot {
+    stroke: var(--dot);
+    stroke-width: 11;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  .box {
+    fill-opacity: var(--box-alpha);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pop .38s cubic-bezier(.2, .9, .3, 1.35) both;
+  }
+  .box.p1 { fill: var(--p1); }
+  .box.p2 { fill: var(--p2); }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } }
+  .hit { fill: transparent; cursor: pointer; outline: none; }
+  .board.locked .hit, .hit[aria-disabled="true"] { cursor: default; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: var(--shadow);
+  }
+  .seg[hidden] { display: none; }
+  .seg button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+  .seg button:focus-visible, .primary:focus-visible { outline: 3px solid var(--p2); outline-offset: 2px; }
+  .primary {
+    appearance: none;
+    border: 0;
+    font: inherit;
+    font-weight: 650;
+    background: var(--text);
+    color: var(--bg);
+    padding: 11px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform .1s;
+  }
+  .primary:active { transform: scale(.97); }
+  .hint { color: var(--muted); font-size: 13px; margin: 0; text-align: center; max-width: 480px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .edge.drawn.h, .edge.drawn.v, .box, .num.bump { animation-duration: .01s; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>Dots &amp; Boxes</h1>
+    <p class="sub" id="sub">Claim more boxes than the computer.</p>
+  </header>
+
+  <section class="score" aria-label="Score">
+    <div class="tile p1" id="tile1">
+      <span class="chip p1"></span>
+      <div><div class="label" id="label1">You</div><div class="num" id="count1">0</div><div class="wins" id="wins1">0 wins</div></div>
+    </div>
+    <div class="tile left">
+      <div class="label">Boxes left</div><div class="num" id="left">0</div>
+    </div>
+    <div class="tile p2" id="tile2">
+      <span class="chip p2"></span>
+      <div><div class="label" id="label2">Computer</div><div class="num" id="count2">0</div><div class="wins" id="wins2">0 wins</div></div>
+    </div>
+  </section>
+
+  <div class="status" id="status" aria-live="polite"><span class="chip p1"></span><span id="statusText">Your move</span></div>
+
+  <div class="card">
+    <svg class="board" id="board" aria-label="Game board"></svg>
+  </div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Opponent" id="mode">
+      <button type="button" data-mode="ai">vs Computer</button>
+      <button type="button" data-mode="pvp">2 Players</button>
+    </div>
+    <div class="seg" role="group" aria-label="Difficulty" id="difficulty">
+      <button type="button" data-level="easy">Easy</button>
+      <button type="button" data-level="medium">Medium</button>
+      <button type="button" data-level="hard">Hard</button>
+    </div>
+    <div class="seg" role="group" aria-label="Board size" id="size">
+      <button type="button" data-size="3">3×3</button>
+      <button type="button" data-size="5">5×5</button>
+      <button type="button" data-size="7">7×7</button>
+    </div>
+    <button class="primary" id="newGame" type="button">New game</button>
+  </div>
+  <p class="hint">Click a gap between two dots to draw a line. Close the fourth side of a box to claim it, and you go again. The most boxes wins. Keyboard: Tab to a line, Enter to draw.</p>
+</main>
+
+<script>
+(() => {
+  const HUMAN = 1, AI = 2, S = 100;
+  const SIZES = [3, 5, 7];
+  const NAMES = ["Red", "Blue"];
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  // ---------- Storage (per-browser convenience only) ----------
+  function load(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  }
+
+  // ---------- Settings ----------
+  let mode = load("dots-mode", "ai");                 // "ai" = vs computer, "pvp" = two players
+  if (mode !== "ai" && mode !== "pvp") mode = "ai";
+  let difficulty = load("dots-difficulty", "medium");
+  let n = load("dots-size", 5);                       // boxes per side
+  if (!SIZES.includes(n)) n = 5;
+  const WINS_KEY = { ai: "dots-wins", pvp: "dots-wins-pvp" };
+  let wins = load(WINS_KEY[mode], { p1: 0, p2: 0 });
+
+  // ---------- Geometry ----------
+  // Horizontal edges come first (row r, col c), then vertical edges.
+  let E, B, HV, edgeBoxes, boxEdges;
+
+  function buildGeometry() {
+    HV = (n + 1) * n; E = 2 * HV; B = n * n;
+    edgeBoxes = Array.from({ length: E }, () => []);
+    boxEdges = Array.from({ length: B }, () => []);
+    const H = (r, c) => r * n + c, V = (r, c) => HV + r * (n + 1) + c;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        const b = r * n + c;
+        boxEdges[b] = [H(r, c), H(r + 1, c), V(r, c), V(r, c + 1)];
+        for (const e of boxEdges[b]) edgeBoxes[e].push(b);
+      }
+    }
+  }
+
+  function edgeEnds(e) {
+    if (e < HV) { const r = Math.floor(e / n), c = e % n; return [c * S, r * S, (c + 1) * S, r * S]; }
+    const k = e - HV, r = Math.floor(k / (n + 1)), c = k % (n + 1);
+    return [c * S, r * S, c * S, (r + 1) * S];
+  }
+
+  // ---------- State ----------
+  let drawn, sides, counts, turn, over, busy, gameId = 0;
+  let nextFirst = HUMAN;
+  let lastLine = null;
+  let lineEls = [], hitEls = [], boxLayer;
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const board = $("board"), statusEl = $("status"), statusText = $("statusText");
+
+  function svgEl(tag, attrs, parent) {
+    const el = document.createElementNS(SVG_NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+
+  function buildBoard() {
+    board.innerHTML = "";
+    const m = 30, w = n * S + m * 2;
+    board.setAttribute("viewBox", `${-m} ${-m} ${w} ${w}`);
+    boxLayer = svgEl("g", {}, board);
+    const lines = svgEl("g", {}, board);
+    const dots = svgEl("g", {}, board);
+    const hits = svgEl("g", {}, board);
+    lineEls = []; hitEls = [];
+
+    for (let e = 0; e < E; e++) {
+      const [x1, y1, x2, y2] = edgeEnds(e), horiz = e < HV;
+      lineEls.push(svgEl("line", { x1, y1, x2, y2, class: `edge ${horiz ? "h" : "v"}` }, lines));
+      // Diamond hit areas tile the board, so every point is closest to exactly one gap.
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, h = S / 2;
+      const pts = horiz
+        ? `${x1},${y1} ${mx},${my - h} ${x2},${y2} ${mx},${my + h}`
+        : `${x1},${y1} ${mx + h},${my} ${x2},${y2} ${mx - h},${my}`;
+      const r = Math.round(y1 / S) + 1, c = Math.round(x1 / S) + 1;
+      const hit = svgEl("polygon", {
+        points: pts, class: "hit", tabindex: 0, role: "button",
+        "aria-label": horiz ? `Horizontal line, row ${r}, from dot ${c} to ${c + 1}`
+                            : `Vertical line, column ${c}, from dot ${r} to ${r + 1}`,
+      }, hits);
+      hit.addEventListener("pointerenter", () => preview(e, true));
+      hit.addEventListener("pointerleave", () => preview(e, false));
+      hit.addEventListener("focus", () => preview(e, true));
+      hit.addEventListener("blur", () => preview(e, false));
+      hit.addEventListener("click", () => humanMove(e));
+      hit.addEventListener("keydown", ev => {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); humanMove(e); }
+      });
+      hitEls.push(hit);
+    }
+    for (let r = 0; r <= n; r++) {
+      for (let c = 0; c <= n; c++) {
+        // Zero-length round-capped line: a dot that stays the same size on any board.
+        svgEl("line", { x1: c * S, y1: r * S, x2: c * S, y2: r * S, class: "dot" }, dots);
+      }
+    }
+  }
+
+  // ---------- AI ----------
+  // The AI works on {drawn, sides} snapshots; `apply` marks an edge and returns boxes completed.
+  const rand = a => a[Math.floor(Math.random() * a.length)];
+  const clone = st => ({ drawn: st.drawn.slice(), sides: st.sides.slice() });
+  const completes = (st, e) => edgeBoxes[e].reduce((k, b) => k + (st.sides[b] === 3), 0);
+  const isSafe = (st, e) => edgeBoxes[e].every(b => st.sides[b] < 2);   // gives the opponent nothing
+  const freeEdges = (st, b) => boxEdges[b].filter(e => !st.drawn[e]);
+  const across = (e, b) => edgeBoxes[e].find(x => x !== b);             // undefined at the border
+
+  function apply(st, e) {
+    st.drawn[e] = 1;
+    let got = 0;
+    for (const b of edgeBoxes[e]) if (++st.sides[b] === 4) got++;
+    return got;
+  }
+
+  // Take every box available, as greedily as possible. Returns how many were taken.
+  function greedy(st) {
+    let got = 0, found = true;
+    while (found) {
+      found = false;
+      for (let e = 0; e < E; e++) {
+        if (!st.drawn[e] && completes(st, e)) { got += apply(st, e); found = true; }
+      }
+    }
+    return got;
+  }
+
+  // Sizes of the regions of unclaimed boxes still joined by undrawn lines.
+  function components(st) {
+    const seen = new Uint8Array(B), sizes = [];
+    for (let b = 0; b < B; b++) {
+      if (seen[b] || st.sides[b] === 4) continue;
+      let size = 0;
+      const stack = [b];
+      seen[b] = 1;
+      while (stack.length) {
+        const x = stack.pop();
+        size++;
+        for (const e of freeEdges(st, x)) {
+          const y = across(e, x);
+          if (y !== undefined && !seen[y]) { seen[y] = 1; stack.push(y); }
+        }
+      }
+      sizes.push(size);
+    }
+    return sizes.sort((a, b) => a - b);
+  }
+
+  // Net boxes for the player who keeps control while the opponent opens regions one at a time.
+  // On each region they either take it all (and must open the next) or decline the last two
+  // to keep control. The opener picks the order that hurts most.
+  const memo = new Map();
+  function controlValue(sizes) {
+    if (!sizes.length) return 0;
+    const key = sizes.join(",");
+    if (memo.has(key)) return memo.get(key);
+    let best = Infinity;
+    for (let i = 0; i < sizes.length; i++) {
+      if (i && sizes[i] === sizes[i - 1]) continue;
+      const s = sizes[i], rest = sizes.slice(0, i).concat(sizes.slice(i + 1));
+      const fr = controlValue(rest);
+      const v = s >= 3 ? Math.max(s - fr, s - 4 + fr) : s - fr;
+      if (v < best) best = v;
+    }
+    memo.set(key, best);
+    return best;
+  }
+
+  // Hard only: when finishing a chain would force us to open the next one, leave the last two
+  // boxes for the opponent instead (a "double-dealing" move) if keeping control pays off.
+  function doubleDeal(st) {
+    const threes = [];
+    for (let b = 0; b < B; b++) if (st.sides[b] === 3) threes.push(b);
+    const cands = [];
+    for (const a of threes) {
+      const [e] = freeEdges(st, a);
+      const b = across(e, a);
+      if (b === undefined || st.sides[b] !== 2) continue;
+      const e2 = freeEdges(st, b).find(x => x !== e);
+      const c = across(e2, b);
+      if (c !== undefined && st.sides[c] >= 2) continue;    // chain goes on past b
+      cands.push({ a, e2 });
+    }
+    if (!cands.length) return null;
+    if (threes.length > 1) {
+      // Take everything else first; the decline has to be the last thing we do.
+      const other = threes.find(x => !cands.some(k => k.a === x));
+      return other === undefined ? null : freeEdges(st, other)[0];
+    }
+    const s = clone(st);
+    greedy(s);
+    const rest = components(s);
+    return rest.length && controlValue(rest) > 2 ? cands[0].e2 : null;
+  }
+
+  // Of the moves that give boxes away, pick the one that gives away the fewest.
+  // Hard also prefers splitting a short chain so it can't be declined back.
+  function cheapest(st, legal, hard) {
+    let bestScore = Infinity, pool = [];
+    for (const e of legal) {
+      const s = clone(st);
+      apply(s, e);
+      const threes = edgeBoxes[e].filter(b => s.sides[b] === 3).length;
+      const score = greedy(s) * 10 - (hard ? threes : 0);
+      if (score < bestScore) { bestScore = score; pool = [e]; }
+      else if (score === bestScore) pool.push(e);
+    }
+    return rand(pool);
+  }
+
+  function chooseMove() {
+    const st = { drawn, sides };
+    const legal = [];
+    for (let e = 0; e < E; e++) if (!drawn[e]) legal.push(e);
+    const caps = legal.filter(e => completes(st, e));
+    const safe = legal.filter(e => isSafe(st, e));
+    const best = caps.length ? caps.reduce((a, e) => completes(st, e) > completes(st, a) ? e : a) : -1;
+
+    if (difficulty === "easy") {
+      if (caps.length && Math.random() < 0.8) return best;
+      if (safe.length && Math.random() < 0.8) return rand(safe);
+      if (!safe.length && Math.random() < 0.5) return cheapest(st, legal, false);
+      return rand(legal);
+    }
+    if (caps.length) {
+      if (difficulty === "hard" && !safe.length) {
+        const dd = doubleDeal(st);
+        if (dd !== null) return dd;
+      }
+      return best;
+    }
+    if (safe.length) return rand(safe);
+    return cheapest(st, legal, difficulty === "hard");
+  }
+
+  // ---------- UI ----------
+  const wait = ms => new Promise(res => setTimeout(res, ms));
+  const isHumanTurn = () => mode === "pvp" || turn === HUMAN;
+  const canPlay = () => !over && !busy && isHumanTurn();
+  const name = p => mode === "pvp" ? NAMES[p - 1] : (p === HUMAN ? "You" : "Computer");
+  const moveText = p => mode === "pvp" ? `${NAMES[p - 1]}'s move` : "Your move";
+  const plural = (k, word) => `${k} ${word}${k === 1 ? "" : "s"}`;
+
+  function goAgainText(p, got) {
+    const what = got === 2 ? "Two boxes" : "Box";
+    return mode === "pvp" ? `${what} for ${NAMES[p - 1]} — go again` : `${what}! Go again`;
+  }
+
+  function setStatus(text, player, thinking = false) {
+    statusText.textContent = text;
+    const chip = statusEl.querySelector(".chip");
+    chip.className = "chip " + (player === AI ? "p2" : "p1");
+    chip.style.visibility = player ? "visible" : "hidden";
+    statusEl.classList.toggle("thinking", thinking);
+    $("tile1").classList.toggle("active", !over && turn === 1);
+    $("tile2").classList.toggle("active", !over && turn === 2);
+  }
+
+  function renderScore(bumped = 0) {
+    $("count1").textContent = counts[1];
+    $("count2").textContent = counts[2];
+    $("left").textContent = B - counts[1] - counts[2];
+    $("wins1").textContent = plural(wins.p1, "win");
+    $("wins2").textContent = plural(wins.p2, "win");
+    if (bumped) {
+      const el = $("count" + bumped);
+      el.classList.remove("bump");
+      void el.offsetWidth;   // restart the animation
+      el.classList.add("bump");
+    }
+  }
+
+  function renderSegs() {
+    for (const b of document.querySelectorAll("#mode button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
+    }
+    for (const b of document.querySelectorAll("#difficulty button")) {
+      b.setAttribute("aria-pressed", String(b.dataset.level === difficulty));
+    }
+    for (const b of document.querySelectorAll("#size button")) {
+      b.setAttribute("aria-pressed", String(+b.dataset.size === n));
+    }
+    const pvp = mode === "pvp";
+    $("difficulty").hidden = pvp;
+    $("label1").textContent = name(1);
+    $("label2").textContent = name(2);
+    $("sub").textContent = pvp ? "Take turns — claim more boxes than your friend."
+                               : "Claim more boxes than the computer.";
+  }
+
+  function preview(e, on) {
+    lineEls[e].classList.toggle("hover", on && canPlay() && !drawn[e]);
+  }
+
+  function updateInteractivity() {
+    board.dataset.turn = turn;
+    board.classList.toggle("locked", !canPlay());
+  }
+
+  function play(e, p) {
+    drawn[e] = p;
+    const el = lineEls[e];
+    el.classList.remove("hover");
+    el.classList.add("drawn", "p" + p, "last");
+    if (lastLine) lastLine.classList.remove("last");
+    lastLine = el;
+    hitEls[e].setAttribute("tabindex", "-1");
+    hitEls[e].setAttribute("aria-disabled", "true");
+    let got = 0;
+    for (const b of edgeBoxes[e]) {
+      if (++sides[b] === 4) {
+        got++;
+        counts[p]++;
+        const r = Math.floor(b / n), c = b % n;
+        svgEl("rect", { x: c * S + 9, y: r * S + 9, width: S - 18, height: S - 18, rx: 12, class: `box p${p}` }, boxLayer);
+      }
+    }
+    renderScore(got ? p : 0);
+    return got;
+  }
+
+  function checkEnd() {
+    if (counts[1] + counts[2] < B) return false;
+    over = true;
+    const [a, b] = [counts[1], counts[2]];
+    const winner = a > b ? 1 : b > a ? 2 : 0;
+    if (winner === 1) wins.p1++;
+    if (winner === 2) wins.p2++;
+    save(WINS_KEY[mode], wins);
+    const tally = `${Math.max(a, b)}–${Math.min(a, b)}`;
+    if (!winner) setStatus(`It's a tie, ${a}–${b}.`, 0);
+    else if (mode === "pvp") setStatus(`${NAMES[winner - 1]} wins ${tally}!`, winner);
+    else if (winner === HUMAN) setStatus(`You win ${tally}! Nicely played.`, HUMAN);
+    else setStatus(`The computer wins ${tally}.`, AI);
+    if (winner) $("tile" + winner).classList.add("winner");
+    if (lastLine) lastLine.classList.remove("last");
+    renderScore();
+    $("newGame").textContent = "Play again";
+    updateInteractivity();
+    return true;
+  }
+
+  function humanMove(e) {
+    if (!canPlay() || drawn[e]) return;
+    const got = play(e, turn);
+    if (checkEnd()) return;
+    if (got) {
+      setStatus(goAgainText(turn, got), turn);
+      return;
+    }
+    turn = 3 - turn;
+    if (mode === "ai") {
+      aiTurn();
+    } else {
+      setStatus(moveText(turn), turn);
+      updateInteractivity();
+    }
+  }
+
+  async function aiTurn() {
+    const id = gameId;
+    busy = true;
+    updateInteractivity();
+    setStatus("Computer is thinking…", AI, true);
+    let pause = 520;
+    while (true) {
+      await wait(pause);
+      if (id !== gameId) return;
+      const got = play(chooseMove(), AI);
+      if (counts[1] + counts[2] === B) { busy = false; checkEnd(); return; }
+      if (!got) break;
+      setStatus(goAgainText(AI, got).replace("! Go again", " — computer goes again"), AI, true);
+      pause = 340;
+    }
+    busy = false;
+    turn = HUMAN;
+    setStatus(moveText(HUMAN), HUMAN);
+    updateInteractivity();
+  }
+
+  function newGame() {
+    gameId++;
+    buildGeometry();
+    buildBoard();
+    drawn = new Int8Array(E);
+    sides = new Int8Array(B);
+    counts = [0, 0, 0];
+    over = false;
+    busy = false;
+    lastLine = null;
+    $("tile1").classList.remove("winner");
+    $("tile2").classList.remove("winner");
+    $("newGame").textContent = "New game";
+    turn = nextFirst;
+    nextFirst = 3 - nextFirst;   // alternate who starts
+    renderScore();
+    if (isHumanTurn()) {
+      setStatus(moveText(turn), turn);
+      updateInteractivity();
+    } else {
+      aiTurn();
+    }
+  }
+
+  // ---------- Events ----------
+  $("newGame").addEventListener("click", newGame);
+  $("mode").addEventListener("click", e => {
+    const b = e.target.closest("button[data-mode]");
+    if (!b || b.dataset.mode === mode) return;
+    mode = b.dataset.mode;
+    save("dots-mode", mode);
+    wins = load(WINS_KEY[mode], { p1: 0, p2: 0 });
+    nextFirst = HUMAN;
+    renderSegs();
+    newGame();
+  });
+  $("difficulty").addEventListener("click", e => {
+    const b = e.target.closest("button[data-level]");
+    if (!b) return;
+    difficulty = b.dataset.level;
+    save("dots-difficulty", difficulty);
+    renderSegs();
+  });
+  $("size").addEventListener("click", e => {
+    const b = e.target.closest("button[data-size]");
+    if (!b || +b.dataset.size === n) return;
+    n = +b.dataset.size;
+    save("dots-size", n);
+    nextFirst = HUMAN;
+    renderSegs();
+    newGame();
+  });
+
+  renderSegs();
+  newGame();
+})();
+</script>
+</body>
+</html>
