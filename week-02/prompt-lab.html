@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt Lab</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --panel: #ffffff;
+    --text: #1f1e1b;
+    --muted: #6b6860;
+    --border: #dcd9d0;
+    --accent: #c15f3c;
+    --accent-text: #ffffff;
+    --system-bg: #eef1f6;
+    --system-edge: #5b7bb2;
+    --you-bg: #fbf1ec;
+    --you-edge: #c15f3c;
+    --claude-bg: #ffffff;
+    --claude-edge: #8a8577;
+    --error-bg: #fdecec;
+    --error-edge: #c0392b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1b19;
+      --panel: #262522;
+      --text: #ece9e2;
+      --muted: #a29e94;
+      --border: #3d3b36;
+      --accent: #d97757;
+      --accent-text: #1c1b19;
+      --system-bg: #232a36;
+      --system-edge: #7d9bd1;
+      --you-bg: #33261f;
+      --you-edge: #d97757;
+      --claude-bg: #2c2b28;
+      --claude-edge: #8a8577;
+      --error-bg: #3a2222;
+      --error-edge: #e06c5f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h1 { margin: 0; font-size: 22px; }
+  .model { color: var(--muted); font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+  label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .hint { font-weight: 400; color: var(--muted); }
+  input, textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+  }
+  textarea { resize: vertical; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #log {
+    height: 420px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #log:empty::before {
+    content: "No messages yet. Write a prompt below and press Send.";
+    color: var(--muted);
+    margin: auto;
+  }
+  .msg {
+    border-left: 4px solid;
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .msg .label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .msg .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.system { background: var(--system-bg); border-color: var(--system-edge); }
+  .msg.system .label { color: var(--system-edge); }
+  .msg.you { background: var(--you-bg); border-color: var(--you-edge); }
+  .msg.you .label { color: var(--you-edge); }
+  .msg.claude { background: var(--claude-bg); border-color: var(--claude-edge); border: 1px solid var(--border); border-left: 4px solid var(--claude-edge); }
+  .msg.claude .label { color: var(--muted); }
+  .msg.error { background: var(--error-bg); border-color: var(--error-edge); }
+  .msg.error .label { color: var(--error-edge); }
+  .msg.failed { opacity: 0.55; }
+  .msg .note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 4px; }
+  .waiting .body::after {
+    content: "";
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; }
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  button {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .row .spacer { flex: 1; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Prompt Lab</h1>
+    <span class="model" id="modelName"></span>
+  </header>
+
+  <div>
+    <label for="apiKey">Anthropic API key <span class="hint">(kept in memory only, never saved)</span></label>
+    <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+  </div>
+
+  <div>
+    <label for="systemPrompt">System prompt <span class="hint">(optional)</span></label>
+    <textarea id="systemPrompt" rows="3" placeholder="e.g. You are a concise business analyst."></textarea>
+  </div>
+
+  <div id="log" aria-live="polite"></div>
+
+  <div>
+    <label for="prompt">Prompt <span class="hint">(Ctrl+Enter to send)</span></label>
+    <textarea id="prompt" rows="4" placeholder="Type your prompt..."></textarea>
+  </div>
+
+  <div class="row">
+    <button id="newBtn" type="button">New Conversation</button>
+    <button id="exportBtn" type="button">Export</button>
+    <span class="spacer"></span>
+    <button id="sendBtn" type="button" class="primary">Send</button>
+  </div>
+</main>
+
+<script>
+  const MODEL = "claude-sonnet-5";
+  const API_URL = "https://api.anthropic.com/v1/messages";
+
+  const apiKeyEl = document.getElementById("apiKey");
+  const systemEl = document.getElementById("systemPrompt");
+  const promptEl = document.getElementById("prompt");
+  const logEl = document.getElementById("log");
+  const sendBtn = document.getElementById("sendBtn");
+  const newBtn = document.getElementById("newBtn");
+  const exportBtn = document.getElementById("exportBtn");
+
+  document.getElementById("modelName").textContent = MODEL;
+
+  // messages: exactly what is sent to the API (user/assistant turns).
+  // transcript: what the log shows and what Export writes ({role, text}).
+  let messages = [];
+  let transcript = [];
+  let sentSystem = null; // system prompt used for the last request; null = no request yet
+  let busy = false;
+
+  function addLogEntry(kind, label, text, note) {
+    const div = document.createElement("div");
+    div.className = "msg " + kind;
+    const labelEl = document.createElement("div");
+    labelEl.className = "label";
+    labelEl.textContent = label;
+    const bodyEl = document.createElement("div");
+    bodyEl.className = "body";
+    bodyEl.textContent = text;
+    div.append(labelEl, bodyEl);
+    if (note) {
+      const noteEl = document.createElement("div");
+      noteEl.className = "note";
+      noteEl.textContent = note;
+      div.append(noteEl);
+    }
+    logEl.append(div);
+    logEl.scrollTop = logEl.scrollHeight;
+    return div;
+  }
+
+  function addMessage(role, text, note) {
+    const kind = role.toLowerCase();
+    const entry = { role, text, el: addLogEntry(kind, role, text, note) };
+    transcript.push(entry);
+    return entry;
+  }
+
+  function addNote(entry, text) {
+    const noteEl = document.createElement("div");
+    noteEl.className = "note";
+    noteEl.textContent = text;
+    entry.el.append(noteEl);
+  }
+
+  function setBusy(value) {
+    busy = value;
+    sendBtn.disabled = value;
+    newBtn.disabled = value;
+  }
+
+  // Log the system prompt the first time, and note any change mid-conversation.
+  function logSystemPrompt(system) {
+    if (sentSystem === null) {
+      if (system) addMessage("System", system);
+    } else if (system !== sentSystem) {
+      const note = "System prompt changed. Claude sees only this new system prompt, applied to the whole conversation from here on.";
+      addMessage("System", system || "(system prompt removed)", note);
+    }
+  }
+
+  async function send() {
+    if (busy) return;
+    const apiKey = apiKeyEl.value.trim();
+    const prompt = promptEl.value;
+    const system = systemEl.value.trim();
+
+    if (!apiKey) {
+      addLogEntry("error", "Error", "Enter your Anthropic API key first.");
+      apiKeyEl.focus();
+      return;
+    }
+    if (!prompt.trim()) {
+      promptEl.focus();
+      return;
+    }
+
+    const previousSystem = sentSystem;
+    const transcriptLength = transcript.length;
+    logSystemPrompt(system);
+    sentSystem = system;
+
+    const youEntry = addMessage("You", prompt);
+    messages.push({ role: "user", content: prompt });
+    promptEl.value = "";
+
+    const waiting = addLogEntry("claude waiting", "Claude", "Waiting for Claude");
+    setBusy(true);
+
+    const body = { model: MODEL, max_tokens: 16000, messages };
+    if (system) body.system = system;
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2026-10-21",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        const detail = data && data.error ? `${data.error.type}: ${data.error.message}` : response.statusText;
+        throw new Error(`HTTP ${response.status} - ${detail}`);
+      }
+
+      // Send the full content back on later turns; show only the text.
+      messages.push({ role: "assistant", content: data.content });
+      const text = data.content.filter(b => b.type === "text").map(b => b.text).join("");
+      waiting.remove();
+
+      let note = "";
+      if (data.stop_reason === "max_tokens") note = "Reply cut off: reached the max_tokens limit.";
+      if (data.stop_reason === "refusal") note = "Claude declined to answer this request.";
+      addMessage("Claude", text || "(no text in reply)", note);
+    } catch (err) {
+      waiting.remove();
+      // Undo the failed turn so the history stays exactly what Claude has seen.
+      messages.pop();
+      transcript.splice(transcriptLength).forEach(entry => {
+        if (entry.role === "System") entry.el.remove();
+      });
+      sentSystem = previousSystem;
+      youEntry.el.classList.add("failed");
+      addNote(youEntry, "Not delivered. Claude did not see this message.");
+      addLogEntry("error", "Error", err.message || String(err));
+      if (!promptEl.value) promptEl.value = prompt;
+    } finally {
+      setBusy(false);
+      promptEl.focus();
+    }
+  }
+
+  function newConversation() {
+    if (busy) return;
+    messages = [];
+    transcript = [];
+    sentSystem = null;
+    logEl.replaceChildren();
+    promptEl.focus();
+  }
+
+  function exportMarkdown() {
+    const parts = [MODEL, ""];
+    for (const entry of transcript) {
+      parts.push(`### ${entry.role}`, "", entry.text, "");
+    }
+    const blob = new Blob([parts.join("\n")], { type: "text/markdown" });
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `prompt-lab-${stamp}.md`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  sendBtn.addEventListener("click", send);
+  newBtn.addEventListener("click", newConversation);
+  exportBtn.addEventListener("click", exportMarkdown);
+  promptEl.addEventListener("keydown", e => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      send();
+    }
+  });
+</script>
+</body>
+</html>
