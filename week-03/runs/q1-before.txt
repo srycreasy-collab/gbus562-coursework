@@ -1,0 +1,42 @@
+Rank 1 | Similarity 0.717 | Source: consumer-fee-schedule.html
+Document: Consumer Fee Schedule
+Section: Overdraft and returned item fees
+
+When Larkfield pays a check, debit card purchase, or automatic payment that overdraws a member's checking account, the overdraft fee is $29 per item paid. When Larkfield returns an item unpaid because the account does not have enough money, the returned item fee is $29 per item returned. No more than three overdraft or returned item fees are charged to one account in a single business day.
+
+No overdraft fee is charged if the account is overdrawn by $10 or less at the end of the business day.
+
+Members can link a savings account for overdraft transfers. An overdraft transfer from a linked savings account is free.
+
+Document details: Version 8 (current). Replaces Version 7. Owner: Member Services.
+
+Rank 2 | Similarity 0.705 | Source: consumer-fee-schedule-v7.html
+Document: Consumer Fee Schedule
+Section: Overdraft and returned item fees
+
+When Larkfield pays a check, debit card purchase, or automatic payment that overdraws a member's checking account, the overdraft fee is $35 per item paid. When Larkfield returns an item unpaid because the account does not have enough money, the returned item fee is $35 per item returned. No more than four overdraft or returned item fees are charged to one account in a single business day.
+
+Members can link a savings account for overdraft transfers. An overdraft transfer from a linked savings account is free.
+
+Document details: Version 7 (current). Replaces Version 6. Owner: Member Services.
+
+Rank 3 | Similarity 0.660 | Source: consumer-fee-schedule.html
+Document: Consumer Fee Schedule
+Section: Checking account monthly fees
+
+Everyday Checking has no monthly service fee. Plus Checking has a monthly service fee of $8. The Plus Checking fee is waived for any month in which the account keeps a minimum daily balance of $1,000, or receives direct deposits totaling $500 or more.
+
+Document details: Version 8 (current). Replaces Version 7. Owner: Member Services.
+
+Rank 4 | Similarity 0.659 | Source: consumer-fee-schedule-v7.html
+Document: Consumer Fee Schedule
+Section: Checking account monthly fees
+
+Everyday Checking has no monthly service fee. Plus Checking has a monthly service fee of $8. The Plus Checking fee is waived for any month in which the account keeps a minimum daily balance of $1,000, or receives direct deposits totaling $500 or more.
+
+Document details: Version 7 (current). Replaces Version 6. Owner: Member Services.
+
+ANSWER
+According to the current version of the Consumer Fee Schedule (Version 8), the overdraft fee is **$29 per item** paid when Larkfield pays a check, debit card purchase, or automatic payment that overdraws a member's checking account, with no more than three such fees charged per account per business day. No fee is charged if the account is overdrawn by $10 or less at the end of the business day [consumer-fee-schedule.html].
+
+Note: an earlier version (Version 7) of the same document lists a different fee — **$35 per item**, with up to four fees per day and no $10 cushion exception [consumer-fee-schedule-v7.html]. Since Version 8 is marked current and explicitly replaces Version 7 [consumer-fee-schedule.html], the $29 fee is the applicable current rate, but both figures are shown here since the sources disagree.

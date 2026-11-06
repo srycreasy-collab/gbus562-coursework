@@ -1,0 +1,36 @@
+Rank 1 | Similarity 0.695 | Source: card-dispute-procedure.html
+Document: Debit Card Dispute Procedure
+Section: How much the member may have to pay
+
+A member's share of the loss from unauthorized debit card transactions depends on how quickly they report it. If the member reports a lost or stolen card within two business days of learning about it, they pay no more than $50. If they report it later than that, they may pay up to $500. If unauthorized transactions appear on a statement and the member does not report them within 60 days after the statement was sent, they may have to pay for transactions after those 60 days in full.
+
+Document details: Version 4 (current). Owner: Card Services.
+
+Rank 2 | Similarity 0.562 | Source: card-dispute-procedure.html
+Document: Debit Card Dispute Procedure
+Section: When a member reports a transaction they did not make
+
+When a member says a debit card transaction on their account was not made or authorized by them, freeze the card right away in the card system, then open a dispute case. Order a replacement card. The replacement is free when the card was used for fraud.
+
+Document details: Version 4 (current). Owner: Card Services.
+
+Rank 3 | Similarity 0.431 | Source: card-dispute-procedure.html
+Document: Debit Card Dispute Procedure
+Section: The dispute form
+
+The member must sign a dispute form listing each transaction they are disputing. The form can be signed at a branch or electronically through online banking. The investigation begins when Larkfield receives the signed form.
+
+Document details: Version 4 (current). Owner: Card Services.
+
+Rank 4 | Similarity 0.427 | Source: card-dispute-procedure.html
+Document: Debit Card Dispute Procedure
+Section: Provisional credit
+
+Larkfield investigates every dispute. If the investigation is not finished within 10 business days, the member receives a provisional credit for the disputed amount while it continues. If the investigation finds the transaction was authorized, the provisional credit is reversed and the member is told in writing.
+
+Document details: Version 4 (current). Owner: Card Services.
+
+ANSWER
+Since the member reported the lost card within two business days of learning about it (they called the same day), they would pay no more than $50 of the loss from unauthorized transactions [card-dispute-procedure.html].
+
+Note: this $50 cap assumes the fraudulent transactions are reported/disputed promptly overall — if unauthorized transactions appear on a statement and are not reported within 60 days after the statement was sent, the member may have to pay in full for transactions occurring after that 60-day window [card-dispute-procedure.html]. Based on the facts given (same-day report), the $50 limit applies.

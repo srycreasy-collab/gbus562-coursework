@@ -1,14 +1,20 @@
-"""Answer questions about Copperline Manufacturing's finance documents using RAG.
+"""Answer questions from a folder of documents using RAG.
 
 Run from the top of the repository:
 
     .venv\\Scripts\\python.exe week-03\\ask.py "What is the hotel limit in Boston?"
     .venv\\Scripts\\python.exe week-03\\ask.py --rebuild
+    .venv\\Scripts\\python.exe week-03\\ask.py --docs path\\to\\folder --rebuild
+    .venv\\Scripts\\python.exe week-03\\ask.py --docs path\\to\\folder "Question?" --save runs\\q1.txt
 
-Use --rebuild after adding, changing, or removing anything in copperline-docs.
+Without --docs, the documents come from week-03\\copperline-docs. Each folder has
+its own database. Use --rebuild after adding, changing, or removing anything in
+the document folder.
 """
 
 import argparse
+import hashlib
+import os
 import re
 import sys
 from collections import Counter
@@ -23,10 +29,13 @@ from chromadb.config import Settings
 
 WEEK_DIR = Path(__file__).resolve().parent
 DOCS_DIR = WEEK_DIR / "copperline-docs"
-DB_DIR = WEEK_DIR / "chroma_db"
+DB_DIR = WEEK_DIR / "chroma_db"  # the database for DOCS_DIR
+OTHER_DBS_DIR = WEEK_DIR / "chroma_dbs"  # one subfolder per other document folder
 KEY_DIR = WEEK_DIR.parents[1]  # the folder that contains the repository
 KEY_FILE_NAME = "api-key.txt"  # matched without regard to upper or lower case
 
+# Every database has its own folder, so they can all share this name. It is kept
+# as it was so the existing Copperline database still opens.
 COLLECTION_NAME = "copperline_docs"
 MODEL = "claude-sonnet-5"
 TOP_K = 4
@@ -36,9 +45,11 @@ PREVIEW_CHARS = 150
 # Roughly 1,100 characters fits inside that, so nothing is silently ignored.
 MAX_CHUNK_CHARS = 1100
 
-# Hand-written notes for sections that depend on facts stated elsewhere in the
-# same document. Keys are (file name, section heading). A new document works
-# without any notes; add one only if a section doesn't make sense on its own.
+# Hand-written notes for copperline-docs sections that depend on facts stated
+# elsewhere in the same document. Keys are (file name, section heading). A new
+# document works without any notes; add one only if a section doesn't make sense
+# on its own. They are never applied to other folders, whose files could share
+# these names but not these facts.
 BUSINESS_DAYS_NOTE = (
     "Business day 1 is the first business day of the new month. Business day "
     "minus 1 is the last business day of the month being closed."
@@ -60,11 +71,13 @@ CONTEXT_NOTES = {
     ),
 }
 
-SYSTEM_PROMPT = """You answer questions about Copperline Manufacturing's finance documents.
+SYSTEM_PROMPT = """You answer questions from a collection of documents.
 
 Answer only from the sources in the user's message. Do not use outside knowledge. You may apply a rule stated in the sources to the situation in the question.
 
-Cite the source file for each fact, in square brackets right after the fact, like this: [travel-expense-policy.html].
+Before you answer, work out which category or rule in the sources the situation actually falls under, based on the facts in the question. A rule applies only if the situation meets its terms; sharing a related word is not enough. If the facts given could fit more than one rule, say so and give the answer under each.
+
+Cite the source file for each fact, in square brackets right after the fact, using the file name from the source's file attribute, like this: [file-name.html].
 
 If the sources don't contain the answer, say so plainly and do not guess. If they answer only part of the question, answer that part and say what is missing. If two sources appear to disagree, show both with their citations instead of choosing one.
 
@@ -320,12 +333,12 @@ def split_long_text(paragraphs, limit):
     return parts
 
 
-def chunks_for_document(document, source):
+def chunks_for_document(document, source, notes):
     chunks = []
     for heading, paragraphs in document.sections:
         if not paragraphs:
             continue
-        note = CONTEXT_NOTES.get((source, heading))
+        note = notes.get((source, heading))
         note_text = f"Context: {note}\n\n" if note else ""
         details_text = f"\n\nDocument details: {document.details}" if document.details else ""
         overhead = len(document.title) + len(heading) + len(note_text) + len(details_text) + 40
@@ -344,17 +357,19 @@ def chunks_for_document(document, source):
     return chunks
 
 
-def load_chunks():
-    """Read every document in the folder and return its chunks."""
-    if not DOCS_DIR.is_dir():
-        raise AskError(f"Documents folder not found: {DOCS_DIR}")
+def is_default_folder(docs_dir):
+    return os.path.normcase(docs_dir) == os.path.normcase(DOCS_DIR)
 
+
+def load_chunks(docs_dir):
+    """Read every document in the folder and return its chunks."""
+    notes = CONTEXT_NOTES if is_default_folder(docs_dir) else {}
     chunks = []
     used_sections = set()
-    for path in sorted(DOCS_DIR.rglob("*")):
+    for path in sorted(docs_dir.rglob("*")):
         if not path.is_file() or path.name.startswith(".") or path.name.lower() == "desktop.ini":
             continue
-        source = path.relative_to(DOCS_DIR).as_posix()
+        source = path.relative_to(docs_dir).as_posix()
         parser = PARSERS.get(path.suffix.lower())
         if parser is None:
             print(f"  WARNING: skipped {source}: {path.suffix or 'this file type'} isn't supported yet")
@@ -364,7 +379,7 @@ def load_chunks():
         except Exception as error:  # one unreadable file shouldn't stop the whole rebuild
             print(f"  WARNING: skipped {source}: {error}")
             continue
-        file_chunks = chunks_for_document(document, source)
+        file_chunks = chunks_for_document(document, source, notes)
         if not file_chunks:
             print(f"  WARNING: skipped {source}: no text found")
             continue
@@ -373,8 +388,8 @@ def load_chunks():
         print(f"  {source}: {len(file_chunks)} chunks")
 
     # A renamed section would otherwise silently lose its context note.
-    for source, heading in CONTEXT_NOTES:
-        if (DOCS_DIR / source).exists() and (source, heading) not in used_sections:
+    for source, heading in notes:
+        if (docs_dir / source).exists() and (source, heading) not in used_sections:
             print(f'  WARNING: context note not used: no section "{heading}" in {source}')
     return chunks
 
@@ -382,18 +397,31 @@ def load_chunks():
 # -------------------------------------------------------------------- Chroma
 
 
-def open_database():
-    DB_DIR.mkdir(exist_ok=True)
-    return chromadb.PersistentClient(path=str(DB_DIR), settings=Settings(anonymized_telemetry=False))
+def database_dir(docs_dir):
+    """Pick the database folder for a document folder.
+
+    The hash of the full path keeps two folders with the same name apart.
+    """
+    if is_default_folder(docs_dir):
+        return DB_DIR
+    name = re.sub(r"[^a-z0-9]+", "-", docs_dir.name.lower()).strip("-") or "docs"
+    path_hash = hashlib.sha256(os.path.normcase(docs_dir).encode("utf-8")).hexdigest()[:8]
+    return OTHER_DBS_DIR / f"{name}-{path_hash}"
+
+
+def open_database(docs_dir):
+    db_dir = database_dir(docs_dir)
+    db_dir.mkdir(parents=True, exist_ok=True)
+    return chromadb.PersistentClient(path=str(db_dir), settings=Settings(anonymized_telemetry=False))
 
 
 def collection_exists(client):
     return COLLECTION_NAME in [c if isinstance(c, str) else c.name for c in client.list_collections()]
 
 
-def rebuild(client):
-    print(f"Reading documents in {DOCS_DIR}")
-    chunks = load_chunks()
+def rebuild(client, docs_dir):
+    print(f"Reading documents in {docs_dir}")
+    chunks = load_chunks(docs_dir)
     if not chunks:
         raise AskError("No documents could be read, so the existing database was left unchanged.")
 
@@ -411,13 +439,13 @@ def rebuild(client):
     return collection
 
 
-def get_collection(client):
+def get_collection(client, docs_dir):
     if collection_exists(client):
         collection = client.get_collection(COLLECTION_NAME)
         if collection.count():
             return collection
     print("No database yet, so building one first.")
-    return rebuild(client)
+    return rebuild(client, docs_dir)
 
 
 def retrieve(collection, question):
@@ -438,6 +466,32 @@ def print_retrieved(retrieved):
         preview = clean(chunk["text"][:PREVIEW_CHARS])
         print(f"  Rank {rank} | Similarity {chunk['similarity']:.3f} | Source: {chunk['source']}")
         print(f"    {preview}\n")
+
+
+def prepare_save_path(save):
+    """Check the output path before any money is spent on a Claude call."""
+    path = Path(save).expanduser().resolve()
+    if path.is_dir():
+        raise AskError(f"--save needs a file name, but this is a folder: {path}")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as error:
+        raise AskError(f"Couldn't create the folder for {path}: {error}")
+    return path
+
+
+def save_output(path, retrieved, answer_text):
+    """Write the full chunks (not the console previews), then the answer."""
+    blocks = [
+        f"Rank {rank} | Similarity {chunk['similarity']:.3f} | Source: {chunk['source']}\n{chunk['text']}\n"
+        for rank, chunk in enumerate(retrieved, start=1)
+    ]
+    output = "\n".join(blocks) + f"\nANSWER\n{answer_text}\n"
+    try:
+        path.write_text(output, encoding="utf-8", newline="\n")
+    except OSError as error:
+        raise AskError(f"The answer above couldn't be saved to {path}: {error}")
+    print(f"\nSaved to {path}")
 
 
 # -------------------------------------------------------------------- Claude
@@ -503,24 +557,35 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-    parser = argparse.ArgumentParser(description="Answer questions from Copperline Manufacturing's finance documents.")
+    parser = argparse.ArgumentParser(description="Answer questions from a folder of documents.")
     parser.add_argument("question", nargs="?", help="the question to ask, in quotes")
     parser.add_argument("--rebuild", action="store_true", help="rebuild the database after adding or removing documents")
+    parser.add_argument("--docs", type=Path, default=DOCS_DIR, help="the document folder (default: week-03/copperline-docs)")
+    parser.add_argument("--save", help="also write the full chunks and the answer to this text file")
     args = parser.parse_args()
 
     question = (args.question or "").strip()
     if not question and not args.rebuild:
         parser.error('ask a question in quotes, or use --rebuild')
+    if args.save and not question:
+        parser.error("--save needs a question to save the output of")
 
     try:
+        docs_dir = args.docs.expanduser().resolve()
+        if not docs_dir.is_dir():
+            raise AskError(f"Documents folder not found: {docs_dir}")
+        save_path = prepare_save_path(args.save) if args.save else None
         api_key = load_api_key() if question else None
-        client = open_database()
-        collection = rebuild(client) if args.rebuild else get_collection(client)
+        client = open_database(docs_dir)
+        collection = rebuild(client, docs_dir) if args.rebuild else get_collection(client, docs_dir)
         if question:
             retrieved = retrieve(collection, question)
             print_retrieved(retrieved)
             print("Answer:\n")
-            print(answer(question, retrieved, api_key))
+            answer_text = answer(question, retrieved, api_key)
+            print(answer_text)
+            if save_path:
+                save_output(save_path, retrieved, answer_text)
     except AskError as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1

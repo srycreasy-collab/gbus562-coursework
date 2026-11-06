@@ -1,0 +1,40 @@
+Rank 1 | Similarity 0.299 | Source: share-certificates.html
+Document: Share Certificates
+Section: Dividend rates
+
+- 6-month share certificate: 3.05% annual percentage yield (APY).
+- 12-month share certificate: 3.40% APY.
+- 24-month share certificate: 3.55% APY.
+- 36-month share certificate: 3.60% APY.
+- 60-month share certificate: 3.75% APY.
+
+The rate is fixed when the certificate is opened and does not change during the term. Dividends are paid monthly and can stay in the certificate or be transferred to the member's savings or checking account.
+
+Document details: Version 5 (current). Owner: Deposit Products.
+
+Rank 2 | Similarity 0.240 | Source: consumer-fee-schedule.html
+Document: Consumer Fee Schedule
+Section: Stop payments
+
+A stop payment on a check costs $30 per request. One request can cover a single check or a series of checks with consecutive numbers. A stop payment stays in effect for six months and can be renewed for another $30.
+
+Document details: Version 8 (current). Replaces Version 7. Owner: Member Services.
+
+Rank 3 | Similarity 0.198 | Source: share-certificates.html
+Document: Share Certificates
+Section: At maturity
+
+When a share certificate matures, it renews automatically for the same term at the rate in effect on the renewal day. The member has a 10-day grace period after maturity to withdraw the money or change the term with no penalty.
+
+Document details: Version 5 (current). Owner: Deposit Products.
+
+Rank 4 | Similarity 0.194 | Source: consumer-fee-schedule.html
+Document: Consumer Fee Schedule
+Section: Checking account monthly fees
+
+Everyday Checking has no monthly service fee. Plus Checking has a monthly service fee of $8. The Plus Checking fee is waived for any month in which the account keeps a minimum daily balance of $1,000, or receives direct deposits totaling $500 or more.
+
+Document details: Version 8 (current). Replaces Version 7. Owner: Member Services.
+
+ANSWER
+The sources provided do not contain any information about mortgage rates. The available documents cover share certificate dividend rates, stop payment fees, checking account monthly fees, and share certificate maturity terms [share-certificates.html] [consumer-fee-schedule.html], but none address mortgages. I cannot answer this question from the given sources.
