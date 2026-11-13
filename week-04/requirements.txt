@@ -1,0 +1,4 @@
+beautifulsoup4==4.15.0
+chromadb==1.5.9
+mcp==2.3.0
+anthropic==2.6.0
