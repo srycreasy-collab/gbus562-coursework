@@ -225,3 +225,5 @@ week-03/chroma_dbs/
 
 # Week 4 HR MCP server: Chroma database (rebuild with hr_mcp_server.py --rebuild)
 week-04/chroma_db/
+# Week 4: one Chroma database per organization (rebuilt automatically)
+week-04/chroma_dbs/

@@ -1,4 +1,8 @@
-"""Hartwell Foods HR agent: drafts replies to employee emails using Claude's tool use.
+"""HR agent: drafts replies to employee emails using Claude's tool use.
+
+It works for any organization whose files are in a folder laid out like
+week-04/hartwell-hr (hr-docs/, employees.csv, system_prompt.txt). Name the folder
+with --org; without it, week-04/hartwell-hr is used.
 
 Two ways to run it (pick one):
 
@@ -14,16 +18,20 @@ Nothing is ever sent. This program only reads mail and creates drafts.
 For each email, the agent:
 
     1. Reads the sender's address from the email's From header.
-    2. Starts hr_mcp_server.py in employee mode (--as-employee <sender>), so the
-       leave-balance tool can only ever return the sender's own balance.
+    2. Starts hr_mcp_server.py for the organization in employee mode
+       (--org <folder> --as-employee <sender>), so the leave-balance tool can only
+       ever return the sender's own balance.
     3. Offers Claude the server's tools plus one local tool, save_reply.
     4. Loops until Claude replies without a tool request, or 10 tool calls are used.
 
+The output starts with the sender and subject. The saved reply is printed after a
+line containing only DRAFT, and followed by "Needs human review: true" or "false".
 Add --save FILE to also write everything printed to FILE (UTF-8).
 
 Run from the top of the repository:
 
     .venv\\Scripts\\python.exe week-04\\agent.py --email week-04\\hartwell-hr\\sample-emails\\03-megan-time-off.eml
+    .venv\\Scripts\\python.exe week-04\\agent.py --org week-04\\ridgeline-hotels --email week-04\\ridgeline-hotels\\sample-emails\\01-jenna-pto.eml --save week-04\\runs\\ridgeline-01.txt
     .venv\\Scripts\\python.exe week-04\\agent.py --inbox --save week-04\\inbox-run.txt
 
 The API key comes from api-key.txt in the folder above the repository. Neither it
@@ -55,7 +63,7 @@ from load_inbox import LoadError, read_login
 
 WEEK_DIR = Path(__file__).resolve().parent
 KEY_PATH = WEEK_DIR.parents[1] / "api-key.txt"
-SYSTEM_PROMPT_PATH = WEEK_DIR / "hartwell-hr" / "system_prompt.txt"
+DEFAULT_ORG_DIR = WEEK_DIR / "hartwell-hr"
 SERVER_PATH = WEEK_DIR / "hr_mcp_server.py"
 DRAFTS_DIR = WEEK_DIR / "drafts"
 
@@ -189,13 +197,25 @@ def read_api_key():
     return key
 
 
-def read_system_prompt():
+def resolve_org(value):
+    """The organization folder: the path as given, or else a folder of that name in week-04."""
+    path = Path(value).expanduser()
+    if not path.is_dir() and not path.is_absolute() and (WEEK_DIR / path).is_dir():
+        path = WEEK_DIR / path
+    path = path.resolve()
+    if not path.is_dir():
+        raise AgentError(f"--org: organization folder not found: {value}")
+    return path
+
+
+def read_system_prompt(org_dir):
+    path = org_dir / "system_prompt.txt"
     try:
-        prompt = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8").strip()
+        prompt = path.read_text(encoding="utf-8").strip()
     except OSError as error:
-        raise AgentError(f"Couldn't read the system prompt {SYSTEM_PROMPT_PATH}: {error.strerror}")
+        raise AgentError(f"Couldn't read the system prompt {path}: {error.strerror}")
     if not prompt:
-        raise AgentError(f"The system prompt {SYSTEM_PROMPT_PATH} is empty.")
+        raise AgentError(f"The system prompt {path} is empty.")
     return prompt
 
 
@@ -261,7 +281,12 @@ class FileDraftSaver:
             f"{reply_text.strip()}\n"
         )
         draft_path.write_text(draft, encoding="utf-8")
-        return f"Draft saved to {draft_path.name}. It was not sent.", f"Draft saved to {draft_path} (not sent)", draft
+        details = (
+            f"To: {self.email.sender}\n"
+            f"Subject: {reply_subject(self.email.subject, needs_review)}\n"
+            f"Source email: {self.source_path.name}"
+        )
+        return f"Draft saved to {draft_path.name}. It was not sent.", f"Draft saved to {draft_path} (not sent)", details
 
 
 class GmailDraftSaver:
@@ -298,16 +323,14 @@ class GmailDraftSaver:
         label_note = ""
         if needs_review:
             if self.mailbox.add_label(self.uid, REVIEW_LABEL):
-                label_note = f" (Gmail label '{REVIEW_LABEL}' added to the thread)"
+                label_note = f"\nLabel: Gmail label '{REVIEW_LABEL}' added to the thread"
             else:
-                label_note = f" (WARNING: couldn't add the Gmail label '{REVIEW_LABEL}')"
+                label_note = f"\nLabel: WARNING: couldn't add the Gmail label '{REVIEW_LABEL}'"
         display = (
             f"To: {draft['To']}\n"
             f"Subject: {draft['Subject']}\n"
-            f"Needs human review: {'yes' if needs_review else 'no'}{label_note}\n"
-            f"Thread: {thread_note}\n"
-            "\n"
-            f"{reply_text.strip()}\n"
+            f"Thread: {thread_note}"
+            f"{label_note}"
         )
         return (
             f"Gmail draft created (not sent). {thread_note}",
@@ -469,17 +492,18 @@ async def call_mcp_tool(session, name, inputs):
     return text, bool(getattr(result, "is_error", False))
 
 
-async def run_agent(client, email, saver):
+async def run_agent(client, org_dir, email, saver):
     """One separate agent run for one email. Returns (draft_saved, input_tokens, output_tokens)."""
-    system_prompt = read_system_prompt()  # re-read for every email
-
-    print(f"Email: {email.label}")
     print(f"Sender: {email.sender}")
     print(f"Subject: {email.subject}")
+    print(f"Email: {email.label}")
+    print(f"Organization: {org_dir.name}")
+
+    system_prompt = read_system_prompt(org_dir)  # re-read for every email
 
     server = StdioServerParameters(
         command=sys.executable,
-        args=[str(SERVER_PATH), "--as-employee", email.sender],
+        args=[str(SERVER_PATH), "--org", str(org_dir), "--as-employee", email.sender],
         cwd=str(WEEK_DIR.parent),
     )
     user_message = (
@@ -497,6 +521,7 @@ async def run_agent(client, email, saver):
     output_tokens = 0
     draft = None
     stop_reason_text = None
+    balance_failed = False  # e.g. no employee record for the sender; forces human review
 
     try:
         with ServerLog() as server_log:
@@ -548,15 +573,26 @@ async def run_agent(client, email, saver):
                                         text = "save_reply needs reply_text (non-empty text) and needs_human_review (true or false)."
                                         is_error = True
                                     else:
-                                        text, where, shown = saver.save(reply_text, review)
-                                        draft = (where, shown)
+                                        forced = balance_failed and not review
+                                        review = review or balance_failed
+                                        text, where, details = saver.save(reply_text, review)
+                                        if forced:
+                                            text += " needs_human_review was set to true because the leave balance lookup failed."
+                                            details += "\nNote: marked for review because the leave balance lookup failed"
+                                        draft = (where, details, reply_text.strip(), review)
                                         is_error = False
                             elif request.name in mcp_names:
                                 text, is_error = await call_mcp_tool(session, request.name, inputs)
+                                if request.name == "get_leave_balance" and is_error:
+                                    balance_failed = True
                             else:
                                 text, is_error = f"There is no tool named {request.name}.", True
 
-                            print_step(tool_calls, request.name, inputs, text)
+                            shown_inputs = inputs
+                            if request.name == "save_reply" and isinstance(inputs.get("reply_text"), str):
+                                # The reply is printed in full after the DRAFT line, so not here too.
+                                shown_inputs = {**inputs, "reply_text": f"({len(inputs['reply_text'])} characters, shown below)"}
+                            print_step(tool_calls, request.name, shown_inputs, text)
                             results.append(
                                 {"type": "tool_result", "tool_use_id": request.id, "content": text, "is_error": is_error}
                             )
@@ -569,10 +605,9 @@ async def run_agent(client, email, saver):
         error = unwrap(error)
         if isinstance(error, AgentError):
             raise error
-        # Most often the MCP server exiting at startup, e.g. when the sender has no employee record.
+        # Most often the MCP server exiting at startup, e.g. a missing or unreadable org file.
         raise AgentError(
-            f"The HR MCP server couldn't be used ({type(error).__name__}: {error}). "
-            "See its messages above; a common cause is a sender with no employee record."
+            f"The HR MCP server couldn't be used ({type(error).__name__}: {error}). See its messages above."
         )
 
     print(f"\n=== Stopped: {stop_reason_text}")
@@ -580,20 +615,25 @@ async def run_agent(client, email, saver):
     if draft is None:
         print("\nNo draft was saved.")
     else:
-        where, shown = draft
+        where, details, reply_text, review = draft
         print(f"\n=== {where}\n")
-        print(shown)
+        print(details)
+        print()
+        print("DRAFT")
+        print(reply_text)
+        print(f"Needs human review: {'true' if review else 'false'}")
+        print()
     print(f"Tokens for this email: {input_tokens:,} input, {output_tokens:,} output")
     return draft is not None, input_tokens, output_tokens
 
 
-async def run_file(client, path):
+async def run_file(client, org_dir, path):
     email = read_email_file(path)
-    saved, _, _ = await run_agent(client, email, FileDraftSaver(email, path))
+    saved, _, _ = await run_agent(client, org_dir, email, FileDraftSaver(email, path))
     return 0 if saved else 2
 
 
-async def run_inbox(client):
+async def run_inbox(client, org_dir):
     mailbox = Mailbox()
     print("Signed in to the mailbox from Agent-Email.txt")
     handled = drafted = failed = 0
@@ -611,7 +651,7 @@ async def run_inbox(client):
             handled += 1
             try:
                 email = parse_email(raw, f"inbox email {number}")
-                saved, used_in, used_out = await run_agent(client, email, GmailDraftSaver(mailbox, email, thread_id, uid))
+                saved, used_in, used_out = await run_agent(client, org_dir, email, GmailDraftSaver(mailbox, email, thread_id, uid))
                 drafted += saved
                 total_in += used_in
                 total_out += used_out
@@ -629,7 +669,13 @@ async def run_inbox(client):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Draft replies to Hartwell Foods HR emails with Claude. Never sends email.")
+    parser = argparse.ArgumentParser(description="Draft replies to HR emails with Claude. Never sends email.")
+    parser.add_argument(
+        "--org",
+        metavar="FOLDER",
+        default=str(DEFAULT_ORG_DIR),
+        help="organization folder holding hr-docs/, employees.csv, and system_prompt.txt (default: week-04/hartwell-hr)",
+    )
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--email", type=Path, help="path of one email file (.eml); the draft goes to week-04/drafts/")
     source.add_argument("--inbox", action="store_true", help="handle each unread email in the Gmail sandbox inbox")
@@ -652,10 +698,11 @@ def main():
         sys.stderr = Tee(sys.stderr, log_file)
 
     try:
+        org_dir = resolve_org(args.org)
         client = anthropic.AsyncAnthropic(api_key=read_api_key())
         if args.inbox:
-            return asyncio.run(run_inbox(client))
-        return asyncio.run(run_file(client, args.email))
+            return asyncio.run(run_inbox(client, org_dir))
+        return asyncio.run(run_file(client, org_dir, args.email))
     except AgentError as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1

@@ -1,0 +1,50 @@
+Sender: logan.brooks@ridgelinehotels.example
+Subject: Days off
+Email: 07-logan-seasonal.eml
+Organization: ridgeline-hotels
+[server] employees.csv: email column 'Email Address'; balance columns 'PTO Days Remaining', 'Sick Days Remaining'
+[server] WARNING: no employee record matches logan.brooks@ridgelinehotels.example; get_leave_balance will return no balance.
+[server] ridgeline-hotels MCP server running (employee mode for logan.brooks@ridgelinehotels.example, database C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-04\chroma_dbs\ridgeline-hotels).
+Tools offered: search_policy, get_leave_balance, save_reply
+[server] [11/15/26 12:06:31] INFO     Tool 'get_leave_balance' failed:     server.py:453
+[server]                              "Error executing tool
+[server]                              get_leave_balance: No employee
+[server]                              record matches
+[server]                              logan.brooks@ridgelinehotels.example
+[server]                              . Do not state, estimate, or guess
+[server]                              any leave balance for this person.
+[server]                              Say that their balance couldn't be
+[server]                              found and that a person from HR will
+[server]                              follow up."
+
+--- Step 1: get_leave_balance
+Inputs: {}
+Result: Error executing tool get_leave_balance: No employee record matches logan.brooks@ridgelinehotels.example. Do not state, estimate, or guess any leave balance for this person. Say that their balance couldn't be found and that a person from HR will follow up.
+
+--- Step 2: save_reply
+Inputs: {"reply_text": "(415 characters, shown below)", "needs_human_review": true}
+Result: Draft saved to 07-logan-seasonal-20261115-120634.txt. It was not sent.
+
+Claude's final message: I've saved a draft reply to Logan. Since no employee record could be found matching his email address, I was unable to retrieve his PTO balance, so I flagged this for People and Culture to follow up with accurate information rather than guessing or stating any numbers.
+
+=== Stopped: Claude finished its reply without asking for another tool.
+Tool calls used: 2 of 10
+
+=== Draft saved to C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-04\drafts\07-logan-seasonal-20261115-120634.txt (not sent)
+
+To: logan.brooks@ridgelinehotels.example
+Subject: [NEEDS HR REVIEW] Re: Days off
+Source email: 07-logan-seasonal.eml
+
+DRAFT
+Hi Logan,
+
+Thanks for reaching out! I tried to look up your current PTO balance, but I wasn't able to find a matching employee record in our system to pull that information. I don't want to guess, so I've flagged this for a member of our People and Culture team to look into and follow up with you directly with your accurate balance.
+
+Thanks for your patience, and sorry for the inconvenience!
+
+Best,
+HR Assistant
+Needs human review: true
+
+Tokens for this email: 5,429 input, 323 output
