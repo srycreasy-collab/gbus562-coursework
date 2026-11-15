@@ -10,3 +10,4 @@ This repository holds coursework for GBUS 562, a course on AI language models. I
 3. Week 2: a Prompt Lab web app for testing prompts against Claude, built with Claude Code
 4. Week 3: a RAG tool that answers questions from any folder of documents, tested on Copperline Manufacturing's and Larkfield Credit Union's documents, built with Claude
 5. Week 4: an AI agent that prepares replies to HR emails using tools from an MCP server, built with Claude Code
+   - Works for any organization: `--org` names a folder with `hr-docs/`, `employees.csv`, and `system_prompt.txt` (default `week-04/hartwell-hr`), tested on Hartwell Foods and Ridgeline Hotels
