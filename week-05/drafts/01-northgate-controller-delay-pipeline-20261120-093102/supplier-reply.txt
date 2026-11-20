@@ -1,0 +1,34 @@
+*** FOR A PERSON TO CHECK BEFORE SENDING: the reviewer did not approve it after 2 revision(s); order(s) with a late penalty: O-1043 ***
+DRAFT - NOT SENT
+To: Karen Walsh <k.walsh@northgatedrive.example>
+Subject: Re: PO-7781 - MC-500 controllers - revised shipment schedule
+Review: NOT APPROVED by the reviewer (after 2 revisions)
+Source email: 01-northgate-controller-delay.eml
+Reviewer's last notes:
+REVISE
+
+1. The draft says "delays three of our downstream orders — by 12 days, 8 days, and 5 days respectively," but the facts give these as days each delayed order is late, not something clearly derivable as stated without context — actually this is supported by facts, so no violation here on rule 1.
+
+7. The draft is otherwise fine on timing phrasing ("scheduled date," "three weeks later," "this week"), so no violation there.
+
+On closer review, the draft is compliant with rules 1, 2, 3, 4, 6, and 7. However:
+
+5. The draft asks "is there any way to ship more than 120 units on the original date, or to pull in part of the remaining 280 sooner?" — this is a request/question, not accepting an option or agreeing to a cost, so this is allowed.
+
+After careful check, the draft actually complies with all rules.
+
+APPROVE
+
+Hi Karen,
+
+Thank you for the heads-up. To confirm our understanding: of the 400 MC-500 controllers on PO-7781, 120 will arrive on the scheduled date, with the remaining 280 arriving three weeks later than planned.
+
+This shortfall puts us short 90 units and delays three of our downstream orders — by 12 days, 8 days, and 5 days respectively. I'm not able to share details on which customers are affected, but I can confirm the scale of impact on our end as above.
+
+To help reduce this impact, is there any way to ship more than 120 units on the original date, or to pull in part of the remaining 280 sooner? Any improvement on either front would help us reduce the delays.
+
+We'll confirm our decision by the time you need it this week.
+
+Thanks for flagging this early.
+
+Purchasing, Brookfield Bicycle Company

@@ -1,0 +1,488 @@
+
+======================================================================
+Pipeline: 01-northgate-controller-delay.eml
+From: Karen Walsh <k.walsh@northgatedrive.example>
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+======================================================================
+
+======================================================================
+Supply analyst
+======================================================================
+
+>>> HANDOFF  pipeline -> analyst: supplier email 01-northgate-controller-delay.eml (554 characters)
+[server] brookfield-bikes supply MCP server running.
+Tools offered: check_coverage, get_orders_for_part, get_part
+[analyst] tokens for this call (claude-sonnet-5): 2,028 in / 121 out
+
+--- [analyst] Step 1: get_part
+Inputs: {"part_id": "MC-500"}
+Result: {
+ "part_id": "MC-500",
+ "description": "Motor controller",
+ "supplier": "Northgate Drive Systems",
+ "on_hand": 40,
+ "scheduled_shipments": [
+  {
+   "po_number": "PO-7781",
+   "supplier": "Northgate Drive Systems",
+   "qty": 400,
+   "arrives_in_days": 5
+  }
+ ]
+}
+
+--- [analyst] Step 2: get_orders_for_part
+Inputs: {"part_id": "MC-500"}
+Result: {
+ "part_id": "MC-500",
+ "orders": [
+  {
+   "order_id": "O-1041",
+   "customer": "Riverside Cycles",
+   "model": "Commuter E",
+   "bikes": 40,
+   "parts_needed": 40,
+   "ship_day": 7,
+   "late_penalty": false
+  },
+  {
+   "order_id": "O-1042",
+   "customer": "Blue Ridge Bike Shop",
+   "model": "Cargo...
+[analyst] tokens for this call (claude-sonnet-5): 3,027 in / 248 out
+[server] [11/20/26 09:47:58] INFO     Tool 'check_coverage' rejected       server.py:450
+[server]                              arguments: ['revised_shipments']
+
+--- [analyst] Step 3: check_coverage
+Inputs: {"part_id": "MC-500", "po_number": "PO-7781", "revised_shipments": "{\"revised_shipments\": [{\"qty\": 120, \"arrives_in_days\": 5}, {\"qty\": 280, \"arrives_in_days\": 26}]}"}
+Result: Error executing tool check_coverage: 1 validation error for check_coverageArguments
+revised_shipments
+  Input should be a valid list [type=list_type, input_value={'revised_shipments': [{'...'arrives_in_days': 26}]}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.14/...
+[analyst] tokens for this call (claude-sonnet-5): 3,402 in / 149 out
+
+--- [analyst] Step 4: check_coverage
+Inputs: {"part_id": "MC-500", "po_number": "PO-7781", "revised_shipments": [{"qty": 120, "arrives_in_days": 5}, {"qty": 280, "arrives_in_days": 26}]}
+Result: {
+ "part_id": "MC-500",
+ "po_number": "PO-7781",
+ "current_shipment": {
+  "qty": 400,
+  "arrives_in_days": 5
+ },
+ "revised_shipments": [
+  {
+   "qty": 120,
+   "arrives_in_days": 5
+  },
+  {
+   "qty": 280,
+   "arrives_in_days": 26
+  }
+ ],
+ "revised_total": 400,
+ "on_hand": 40,
+ "other_shipments": [],
+...
+[analyst] tokens for this call (claude-sonnet-5): 4,812 in / 679 out
+
+[analyst] Claude finished without asking for another tool. Tool calls used: 4 of 10.
+
+[analyst] Brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "Of the 400 MC-500 controllers on PO-7781, only 120 will arrive on day 5 as originally scheduled, with the remaining 280 arriving on day 26 (three weeks later than planned).",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Decide whether to accept the revised split-shipment schedule (120 on day 5, 280 on day 26) as-is, which puts orders O-1043, O-1044, and O-1045 at risk, or to contact Karen Walsh this week to discuss alternative arrangements that might reduce or eliminate this impact.",
+    "If contacting the supplier, determine which customers/orders to prioritize (e.g., O-1043 has a late penalty and is the earliest-shipping affected order) when discussing options."
+  ],
+  "supplier_questions": [
+    "Which of Brookfield's customers are most affected by this schedule change?"
+  ]
+}
+[analyst] Every order at risk in the brief matches a check_coverage result.
+[analyst] tokens used by the analyst in this step: 13,269 in / 1,197 out (4 calls)
+
+>>> HANDOFF  analyst -> pipeline: JSON brief: 3 order(s) at risk, 0 option(s), 2 decision(s) for a person
+
+======================================================================
+Customer writer: O-1043
+======================================================================
+
+>>> HANDOFF  pipeline -> customer-writer: the facts of order O-1043 only
+[customer-writer] tokens for this call (claude-sonnet-5): 410 in / 159 out
+
+[customer-writer] Draft:
+Dear City of Ashford Bike Share,
+
+We're writing to update you on order O-1043 for 100 Commuter E bicycles. This order is now expected to ship 12 days later than originally planned.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We understand the impact this may have on your planning and appreciate your patience. If you have any questions about your order, please don't hesitate to reach out.
+
+Customer Service
+Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 783 in / 247 out
+
+[reviewer] APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] supplier names in this customer draft: none
+[code check] other customer names in this customer draft: none
+[code check] late penalty on: O-1043
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\customer-O-1043.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\customer-O-1043.txt (APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043).
+
+>>> HANDOFF  review step -> pipeline: customer-O-1043.txt: APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043
+[customer-writer] tokens used by the customer-writer in this step: 410 in / 159 out (1 call)
+[reviewer] tokens used by the reviewer in this step: 783 in / 247 out (1 call)
+
+======================================================================
+Customer writer: O-1044
+======================================================================
+
+>>> HANDOFF  pipeline -> customer-writer: the facts of order O-1044 only
+[customer-writer] tokens for this call (claude-sonnet-5): 407 in / 138 out
+
+[customer-writer] Draft:
+Dear Main Street Bikes,
+
+We're writing to update you on order O-1044 for 30 Cargo E bicycles. This order is now expected to ship 8 days later than originally planned.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We appreciate your patience and will keep you informed of any further updates regarding your order.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 759 in / 341 out
+
+[reviewer] REVISE
+
+1. The draft states "8 days later than originally planned" — this is correct arithmetic, but it should also express timing in a way the reader understands clearly in context (rule 7 is satisfied here since it's phrased relatively, not as a bare day number, so no issue).
+
+Actually, checking rule 7 more closely: "8 days later than originally planned" is acceptable phrasing, not a bare day number — no violation.
+
+No rule violations found. Let me re-verify each rule:
+
+1. Numbers (O-1044, 30, 8) all appear in or derive correctly from facts. OK.
+2. No promises of dates/quantities/discounts beyond what facts support. OK.
+3. N/A (customer draft).
+4. No supplier named, no other customer named, no cost mentioned. OK.
+5. No option accepted, no cost agreed, nothing cancelled. OK.
+6. Tone is plain and apologetic. OK.
+7. Timing phrased as "8 days later than originally planned," not a bare day number. OK.
+
+APPROVE
+
+>>> HANDOFF  reviewer -> customer-writer: REVISE notes (revision 1 of at most 2)
+[customer-writer] tokens for this call (claude-sonnet-5): 971 in / 138 out
+
+[customer-writer] Revised draft:
+Dear Main Street Bikes,
+
+We're writing to update you on order O-1044 for 30 Cargo E bicycles. This order is now expected to ship 8 days later than originally planned.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We appreciate your patience and will keep you informed of any further updates regarding your order.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft (revision 1) and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 759 in / 162 out
+
+[reviewer] REVISE
+
+1. The draft mentions a timing detail ("8 days later than originally planned") but doesn't give the reader a clear understanding of absolute timing. Rule 7 requires timing to be expressed in a way the reader understands, such as "in 26 days" or "on the scheduled date," not as a relative offset like "8 days later." Change "expected to ship 8 days later than originally planned" to something like "now expected to ship in 26 days" (based on expected_ship_in_days from facts).
+
+>>> HANDOFF  reviewer -> customer-writer: REVISE notes (revision 2 of at most 2)
+[customer-writer] tokens for this call (claude-sonnet-5): 792 in / 146 out
+
+[customer-writer] Revised draft:
+Dear Main Street Bikes,
+
+We're writing to update you on order O-1044 for 30 Cargo E bicycles. This order is now expected to ship in 26 days, which is 8 days later than originally planned.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We appreciate your patience and will keep you informed of any further updates regarding your order.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft (revision 2) and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 767 in / 7 out
+
+[reviewer] APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] supplier names in this customer draft: none
+[code check] other customer names in this customer draft: none
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\customer-O-1044.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\customer-O-1044.txt (APPROVED by the reviewer (after 2 revisions); not marked).
+
+>>> HANDOFF  review step -> pipeline: customer-O-1044.txt: APPROVED by the reviewer (after 2 revisions); not marked
+[customer-writer] tokens used by the customer-writer in this step: 2,170 in / 422 out (3 calls)
+[reviewer] tokens used by the reviewer in this step: 2,285 in / 510 out (3 calls)
+
+======================================================================
+Customer writer: O-1045
+======================================================================
+
+>>> HANDOFF  pipeline -> customer-writer: the facts of order O-1045 only
+[customer-writer] tokens for this call (claude-sonnet-5): 408 in / 180 out
+
+[customer-writer] Draft:
+Dear Lakeview Rentals,
+
+We're writing to let you know about an update to your order, O-1045, for 50 units of the Commuter E.
+
+This order was originally planned to ship in 21 days, but it is now expected to ship in 26 days — 5 days later than planned.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We understand the impact this may have on your plans and appreciate your patience. If you have any questions, please don't hesitate to reach out.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 802 in / 7 out
+
+[reviewer] APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] supplier names in this customer draft: none
+[code check] other customer names in this customer draft: none
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\customer-O-1045.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\customer-O-1045.txt (APPROVED by the reviewer; not marked).
+
+>>> HANDOFF  review step -> pipeline: customer-O-1045.txt: APPROVED by the reviewer; not marked
+[customer-writer] tokens used by the customer-writer in this step: 408 in / 180 out (1 call)
+[reviewer] tokens used by the reviewer in this step: 802 in / 7 out (1 call)
+
+======================================================================
+Supplier writer
+======================================================================
+
+>>> HANDOFF  pipeline -> supplier-writer: the supplier email and the brief, with customer names and order numbers removed
+[supplier-writer] tokens for this call (claude-sonnet-5): 971 in / 253 out
+
+[supplier-writer] Draft:
+Hello Karen,
+
+Thank you for the update on PO-7781. To confirm: of the 400 MC-500 controllers, 120 will arrive on the scheduled date, with the remaining 280 arriving 3 weeks later than planned.
+
+This shortfall leaves us 90 units short against our near-term needs and will delay 3 of our orders - by 12 days, 8 days, and 5 days respectively.
+
+We're not able to share details on our customers, but I can tell you the above reflects the direct impact of this schedule change.
+
+Could you let us know if any additional units could be shipped sooner than the 3-week mark? Any partial acceleration would help reduce these delays.
+
+We'll confirm our position with you by the end of this week.
+
+Purchasing, Brookfield Bicycle Company
+
+>>> HANDOFF  supplier-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 1,249 in / 448 out
+
+[reviewer] REVISE
+
+1. Rule 7: "arriving 3 weeks later than planned" should be phrased relative to reader's understanding of timing (e.g., "in 26 days" or "on day 26"), and "on the scheduled date" is fine but the "3 weeks later" phrasing should match the facts' framing — acceptable, but double-check: actually this is borderline fine. However, no explicit day numbers are used, so this is acceptable. (No violation here.)
+
+2. Rule 5: The draft asks "Could you let us know if any additional units could be shipped sooner... Any partial acceleration would help" — this is soliciting an option but doesn't accept one, so that's fine. However, "We'll confirm our position with you by the end of this week" — the facts don't specify a timeframe for Brookfield's decision; the brief only says "brookfield_must_decide: true" with no deadline given by the supplier. This promises a timing commitment not supported by facts. Change to something like "We'll confirm our position with you as soon as possible" or remove the specific "by the end of this week" unless that matches a supplier-requested deadline (not stated in facts).
+
+Change: Remove or rephrase "We'll confirm our position with you by the end of this week" to avoid promising an unsupported date—state only that Brookfield will confirm once a decision is made, without specifying a timeframe not found in the facts.
+
+>>> HANDOFF  reviewer -> supplier-writer: REVISE notes (revision 1 of at most 2)
+[supplier-writer] tokens for this call (claude-sonnet-5): 1,757 in / 251 out
+
+[supplier-writer] Revised draft:
+Hello Karen,
+
+Thank you for the update on PO-7781. To confirm: of the 400 MC-500 controllers, 120 will arrive on the scheduled date, with the remaining 280 arriving in 26 days.
+
+This shortfall leaves us 90 units short against our near-term needs and will delay 3 of our orders - by 12 days, 8 days, and 5 days respectively.
+
+We're not able to share details on our customers, but I can tell you the above reflects the direct impact of this schedule change.
+
+Could you let us know if any additional units could be shipped sooner than the 26-day mark? Any partial acceleration would help reduce these delays.
+
+We'll confirm our position with you once we've finalized our decision.
+
+Purchasing, Brookfield Bicycle Company
+
+>>> HANDOFF  supplier-writer -> reviewer: draft (revision 1) and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 1,247 in / 366 out
+
+[reviewer] REVISE
+
+1. "280 arriving in 26 days" is wrong — per the facts, day 26 is counted from today (day 0), but the original 280 were due at day 5 (scheduled date), so the delay is 21 days late, not 26. Change to "in 26 days" only if that's the correct count from today — but the draft also says 120 "arrive on the scheduled date" without a timeframe, inconsistent treatment. Fix: state "120 on day 5 (the scheduled date)" as "in 5 days" and "280 in 26 days," and don't imply "26 days later than planned" — the facts say three weeks (21 days) later than planned, so the draft must not conflate these numbers incorrectly.
+
+7. "in 26 days" is fine per rule 7 phrasing, but the first mention of 120 units uses "on the scheduled date" without converting to a day count — this is acceptable per rule 7, so no violation there; however, the implied "26 days" for the delay should be checked against rule 1 arithmetic (day 26 - day 5 = 21 days late, not stated, so no error introduced, but ensure consistency).
+
+>>> HANDOFF  reviewer -> supplier-writer: REVISE notes (revision 2 of at most 2)
+[supplier-writer] tokens for this call (claude-sonnet-5): 1,673 in / 265 out
+
+[supplier-writer] Revised draft:
+Hello Karen,
+
+Thank you for the update on PO-7781. To confirm: of the 400 MC-500 controllers, 120 will arrive in 5 days as originally scheduled, with the remaining 280 arriving in 26 days, three weeks later than planned.
+
+This shortfall leaves us 90 units short against our near-term needs and will delay 3 of our orders - by 12 days, 8 days, and 5 days respectively.
+
+We're not able to share details on our customers, but I can tell you the above reflects the direct impact of this schedule change.
+
+Could you let us know if any additional units could be shipped sooner than the 26-day mark? Any partial acceleration would help reduce these delays.
+
+We'll confirm our position with you once we've finalized our decision.
+
+Purchasing, Brookfield Bicycle Company
+
+>>> HANDOFF  supplier-writer -> reviewer: draft (revision 2) and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 1,261 in / 238 out
+
+[reviewer] APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] customer names in this supplier draft: none
+[code check] late penalty on: O-1043
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\supplier-reply.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\supplier-reply.txt (APPROVED by the reviewer (after 2 revisions); MARKED FOR A PERSON: order(s) with a late penalty: O-1043).
+
+>>> HANDOFF  review step -> pipeline: supplier-reply.txt: APPROVED by the reviewer (after 2 revisions); MARKED FOR A PERSON: order(s) with a late penalty: O-1043
+[supplier-writer] tokens used by the supplier-writer in this step: 4,401 in / 769 out (3 calls)
+[reviewer] tokens used by the reviewer in this step: 3,757 in / 1,052 out (3 calls)
+
+>>> HANDOFF  pipeline -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\summary.txt
+
+======================================================================
+Summary
+======================================================================
+Coordinator: pipeline
+Source email: 01-northgate-controller-delay.eml
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+
+Summary for the purchasing manager:
+Part MC-500: Of the 400 MC-500 controllers on PO-7781, only 120 will arrive on day 5 as originally scheduled, with the remaining 280 arriving on day 26 (three weeks later than planned).
+Orders at risk:
+  - O-1043 City of Ashford Bike Share: 10 units short, ship day 14, ready day 26 (late penalty)
+  - O-1044 Main Street Bikes: 30 units short, ship day 18, ready day 26
+  - O-1045 Lakeview Rentals: 50 units short, ship day 21, ready day 26
+Decision needed: Decide whether to accept the revised split-shipment schedule (120 on day 5, 280 on day 26) as-is, which puts orders O-1043, O-1044, and O-1045 at risk, or to contact Karen Walsh this week to discuss alternative arrangements that might reduce or eliminate this impact.
+Decision needed: If contacting the supplier, determine which customers/orders to prioritize (e.g., O-1043 has a late penalty and is the earliest-shipping affected order) when discussing options.
+Supplier asked: Which of Brookfield's customers are most affected by this schedule change?
+
+Needs a decision by a person: yes
+  - customer-O-1043.txt: order(s) with a late penalty: O-1043.
+  - supplier-reply.txt: order(s) with a late penalty: O-1043.
+
+Drafts (none were sent):
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example: approved, 0 revision(s), MARKED for a person
+  - customer-O-1044.txt to owner@mainstreetbikes.example: approved, 2 revision(s), not marked
+  - customer-O-1045.txt to info@lakeviewrentals.example: approved, 0 revision(s), not marked
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>: approved, 2 revision(s), MARKED for a person
+
+Analyst's brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "Of the 400 MC-500 controllers on PO-7781, only 120 will arrive on day 5 as originally scheduled, with the remaining 280 arriving on day 26 (three weeks later than planned).",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Decide whether to accept the revised split-shipment schedule (120 on day 5, 280 on day 26) as-is, which puts orders O-1043, O-1044, and O-1045 at risk, or to contact Karen Walsh this week to discuss alternative arrangements that might reduce or eliminate this impact.",
+    "If contacting the supplier, determine which customers/orders to prioritize (e.g., O-1043 has a late penalty and is the earliest-shipping affected order) when discussing options."
+  ],
+  "supplier_questions": [
+    "Which of Brookfield's customers are most affected by this schedule change?"
+  ]
+}
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811\summary.txt
+
+======================================================================
+Pipeline finished
+======================================================================
+Drafts saved (4, none sent), in C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-pipeline-20261120-094811:
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example
+  - customer-O-1044.txt to owner@mainstreetbikes.example
+  - customer-O-1045.txt to info@lakeviewrentals.example
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>
+
+Drafts marked for a person (2):
+  - customer-O-1043.txt: order(s) with a late penalty: O-1043
+  - supplier-reply.txt: order(s) with a late penalty: O-1043
+
+Decisions for a person (2):
+  - Decide whether to accept the revised split-shipment schedule (120 on day 5, 280 on day 26) as-is, which puts orders O-1043, O-1044, and O-1045 at risk, or to contact Karen Walsh this week to discuss alternative arrangements that might reduce or eliminate this impact.
+  - If contacting the supplier, determine which customers/orders to prioritize (e.g., O-1043 has a late penalty and is the earliest-shipping affected order) when discussing options.
+
+Tokens by role (input / output, calls):
+  analyst            13,269 /   1,197  (4 calls)
+  customer-writer     2,988 /     761  (5 calls)
+  reviewer            7,627 /   1,816  (8 calls)
+  supplier-writer     4,401 /     769  (3 calls)
+  total              28,285 /   4,543

@@ -1,0 +1,20 @@
+*** FOR A PERSON TO CHECK BEFORE SENDING: order(s) with a late penalty: O-1043 ***
+DRAFT - NOT SENT
+To: Karen Walsh <k.walsh@northgatedrive.example>
+Subject: Re: PO-7781 - MC-500 controllers - revised shipment schedule
+Review: APPROVED by the reviewer (after 2 revisions)
+Source email: 01-northgate-controller-delay.eml
+
+Hello Karen,
+
+Thank you for the update on PO-7781. To confirm: of the 400 MC-500 controllers, 120 will arrive in 5 days as originally scheduled, with the remaining 280 arriving in 26 days, three weeks later than planned.
+
+This shortfall leaves us 90 units short against our near-term needs and will delay 3 of our orders - by 12 days, 8 days, and 5 days respectively.
+
+We're not able to share details on our customers, but I can tell you the above reflects the direct impact of this schedule change.
+
+Could you let us know if any additional units could be shipped sooner than the 26-day mark? Any partial acceleration would help reduce these delays.
+
+We'll confirm our position with you once we've finalized our decision.
+
+Purchasing, Brookfield Bicycle Company

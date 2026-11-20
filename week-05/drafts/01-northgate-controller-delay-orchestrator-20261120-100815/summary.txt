@@ -1,0 +1,56 @@
+Coordinator: orchestrator
+Source email: 01-northgate-controller-delay.eml
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+
+Summary for the purchasing manager:
+Northgate Drive Systems notified that PO-7781 (400 MC-500 controllers) will arrive as 120 units on schedule and the remaining 280 units 3 weeks late. This delays three downstream orders: O-1043 (City of Ashford Bike Share, 12 days late, carries a late penalty), O-1044 (Main Street Bikes, 8 days late), and O-1045 (Lakeview Rentals, 5 days late). Drafted a supplier reply asking Northgate to explore ways to reduce the delay (e.g., shipping more upfront or pulling forward part of the remaining units) and noting we'll confirm our position this week; it withholds specific customer names pending a decision. Also drafted customer delay notices for all three affected orders, with O-1043 flagged for special attention due to its late penalty. A person should decide how to respond to Northgate's offer to discuss alternatives (especially to protect the penalty-bearing O-1043) and approve/send the drafted communications.
+
+Needs a decision by a person: yes
+  - supplier-reply.txt: order(s) with a late penalty: O-1043.
+  - customer-O-1043.txt: order(s) with a late penalty: O-1043.
+
+Drafts (none were sent):
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>: approved, 0 revision(s), MARKED for a person
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example: approved, 0 revision(s), MARKED for a person
+  - customer-O-1044.txt to owner@mainstreetbikes.example: approved, 0 revision(s), not marked
+  - customer-O-1045.txt to info@lakeviewrentals.example: approved, 0 revision(s), not marked
+
+Analyst's brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "PO-7781 will now arrive as 120 units on day 5 (as originally scheduled) and the remaining 280 units on day 26, instead of all 400 arriving on day 5.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Decide how to respond to Karen Walsh's offer to discuss alternative shipment arrangements, since orders O-1043, O-1044, and O-1045 will be delayed (ready day 26) under the current revised schedule.",
+    "Consider whether to prioritize or expedite O-1043 given it carries a late penalty and is now 12 days late."
+  ],
+  "supplier_questions": [
+    "Karen Walsh asked which customers are most affected by the delay, so Northgate can understand the impact on Brookfield's side."
+  ]
+}

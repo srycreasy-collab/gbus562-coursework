@@ -1,0 +1,17 @@
+*** FOR A PERSON TO CHECK BEFORE SENDING: order(s) with a late penalty: O-1043 ***
+DRAFT - NOT SENT
+To: fleet@ashfordbikeshare.example
+Subject: Your order O-1043: updated ship date
+Review: APPROVED by the reviewer
+Source email: 01-northgate-controller-delay.eml
+
+Dear City of Ashford Bike Share,
+
+We're writing to update you on order O-1043 for 100 Commuter E bicycles. This order is now expected to ship 12 days later than originally planned.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We understand the impact this may have on your planning and appreciate your patience. If you have any questions about your order, please don't hesitate to reach out.
+
+Customer Service
+Brookfield Bicycle Company

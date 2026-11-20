@@ -1,0 +1,459 @@
+
+======================================================================
+Orchestrator: 01-northgate-controller-delay.eml
+From: Karen Walsh <k.walsh@northgatedrive.example>
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+======================================================================
+[orchestrator] tokens for this call (claude-sonnet-5): 1,591 in / 51 out
+
+>>> [orchestrator] Choice 1 of at most 10: run_supply_analyst
+
+======================================================================
+Supply analyst
+======================================================================
+
+>>> HANDOFF  orchestrator -> analyst: supplier email 01-northgate-controller-delay.eml (554 characters)
+[server] brookfield-bikes supply MCP server running.
+Tools offered: check_coverage, get_orders_for_part, get_part
+[analyst] tokens for this call (claude-sonnet-5): 2,155 in / 132 out
+
+--- [analyst] Step 1: get_part
+Inputs: {"part_id": "MC-500"}
+Result: {
+ "part_id": "MC-500",
+ "description": "Motor controller",
+ "supplier": "Northgate Drive Systems",
+ "on_hand": 40,
+ "scheduled_shipments": [
+  {
+   "po_number": "PO-7781",
+   "supplier": "Northgate Drive Systems",
+   "qty": 400,
+   "arrives_in_days": 5
+  }
+ ]
+}
+
+--- [analyst] Step 2: get_orders_for_part
+Inputs: {"part_id": "MC-500"}
+Result: {
+ "part_id": "MC-500",
+ "orders": [
+  {
+   "order_id": "O-1041",
+   "customer": "Riverside Cycles",
+   "model": "Commuter E",
+   "bikes": 40,
+   "parts_needed": 40,
+   "ship_day": 7,
+   "late_penalty": false
+  },
+  {
+   "order_id": "O-1042",
+   "customer": "Blue Ridge Bike Shop",
+   "model": "Cargo...
+[analyst] tokens for this call (claude-sonnet-5): 3,165 in / 185 out
+
+--- [analyst] Step 3: check_coverage
+Inputs: {"part_id": "MC-500", "po_number": "PO-7781", "revised_shipments": [{"qty": 120, "arrives_in_days": 5}, {"qty": 280, "arrives_in_days": 26}]}
+Result: {
+ "part_id": "MC-500",
+ "po_number": "PO-7781",
+ "current_shipment": {
+  "qty": 400,
+  "arrives_in_days": 5
+ },
+ "revised_shipments": [
+  {
+   "qty": 120,
+   "arrives_in_days": 5
+  },
+  {
+   "qty": 280,
+   "arrives_in_days": 26
+  }
+ ],
+ "revised_total": 400,
+ "on_hand": 40,
+ "other_shipments": [],
+...
+[analyst] tokens for this call (claude-sonnet-5): 4,611 in / 611 out
+
+[analyst] Claude finished without asking for another tool. Tool calls used: 3 of 10.
+
+[analyst] Brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "PO-7781 will now arrive as 120 units on day 5 (as originally scheduled) and the remaining 280 units on day 26, instead of all 400 arriving on day 5.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Decide how to respond to Karen Walsh's offer to discuss alternative shipment arrangements, since orders O-1043, O-1044, and O-1045 will be delayed (ready day 26) under the current revised schedule.",
+    "Consider whether to prioritize or expedite O-1043 given it carries a late penalty and is now 12 days late."
+  ],
+  "supplier_questions": [
+    "Karen Walsh asked which customers are most affected by the delay, so Northgate can understand the impact on Brookfield's side."
+  ]
+}
+[analyst] Every order at risk in the brief matches a check_coverage result.
+[analyst] tokens used by the analyst in this step: 9,931 in / 928 out (3 calls)
+
+>>> HANDOFF  analyst -> orchestrator: JSON brief: 3 order(s) at risk, 0 option(s), 2 decision(s) for a person
+
+======================================================================
+Orchestrator
+======================================================================
+
+--- [orchestrator] Step 1: run_supply_analyst
+Inputs: {}
+Result: {
+ "part_id": "MC-500",
+ "what_changed": "PO-7781 will now arrive as 120 units on day 5 (as originally scheduled) and the remaining 280 units on day 26, instead of all 400 arriving on day 5.",
+ "orders_at_risk": [
+  {
+   "order_id": "O-1043",
+   "customer": "City of Ashford Bike Share",
+   "units_sh...
+[orchestrator] tokens for this call (claude-sonnet-5): 2,184 in / 257 out
+
+>>> [orchestrator] Choice 2 of at most 10: draft_supplier_reply
+
+======================================================================
+Supplier writer
+======================================================================
+
+>>> HANDOFF  orchestrator -> supplier-writer: the supplier email and the brief, with customer names and order numbers removed
+[supplier-writer] tokens for this call (claude-sonnet-5): 980 in / 294 out
+
+[supplier-writer] Draft:
+Hi Karen,
+
+Thank you for the update on PO-7781. To confirm, we understand the revised schedule as 120 of the 400 MC-500 controllers arriving in 5 days as originally scheduled, with the remaining 280 units arriving in 26 days instead of all 400 arriving in 5 days.
+
+This shortfall leaves us 90 units short against our needs, and it will delay 3 of our downstream orders - by 12 days, 8 days, and 5 days respectively. We're not able to share details on which customers are affected.
+
+Given this impact, we'd ask that you look into shipping more than 120 units on the original date, or pulling forward some portion of the remaining 280 units, to help reduce the delay. If there are ways to improve on this timeline, please let us know.
+
+We will confirm our position with you by the end of this week.
+
+Best regards,
+Purchasing, Brookfield Bicycle Company
+
+>>> HANDOFF  supplier-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 1,398 in / 13 out
+
+[reviewer] VERDICT: APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] customer names in this supplier draft: none
+[code check] late penalty on: O-1043
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\supplier-reply.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\supplier-reply.txt (APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043).
+
+>>> HANDOFF  review step -> orchestrator: supplier-reply.txt: APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043
+[supplier-writer] tokens used by the supplier-writer in this step: 980 in / 294 out (1 call)
+[reviewer] tokens used by the reviewer in this step: 1,398 in / 13 out (1 call)
+
+======================================================================
+Orchestrator
+======================================================================
+
+--- [orchestrator] Step 2: draft_supplier_reply
+Inputs: {}
+Result: Saved supplier-reply.txt. APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043.
+
+Hi Karen,
+
+Thank you for the update on PO-7781. To confirm, we understand the revised schedule as 120 of the 400 MC-500 controllers arriving in 5 days as originally scheduled, with the rem...
+
+>>> [orchestrator] Choice 3 of at most 10: draft_customer_notice for O-1043
+
+======================================================================
+Customer writer: O-1043
+======================================================================
+
+>>> HANDOFF  orchestrator -> customer-writer: the facts of order O-1043 only
+[customer-writer] tokens for this call (claude-sonnet-5): 410 in / 189 out
+
+[customer-writer] Draft:
+Dear City of Ashford Bike Share,
+
+We are writing to update you on the status of your order, O-1043, for 100 Commuter E bicycles.
+
+We apologize, but this order is now expected to ship 12 days later than originally planned, due to a delay in a part from one of our suppliers.
+
+We understand the timing of this order is important to you, and we will continue working to get your bicycles to you as soon as possible. If you have any questions in the meantime, please don't hesitate to reach out.
+
+Thank you for your patience and understanding.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 912 in / 145 out
+
+[reviewer] VERDICT: APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] supplier names in this customer draft: none
+[code check] other customer names in this customer draft: none
+[code check] late penalty on: O-1043
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\customer-O-1043.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\customer-O-1043.txt (APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043).
+
+>>> HANDOFF  review step -> orchestrator: customer-O-1043.txt: APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043
+[customer-writer] tokens used by the customer-writer in this step: 410 in / 189 out (1 call)
+[reviewer] tokens used by the reviewer in this step: 912 in / 145 out (1 call)
+
+======================================================================
+Orchestrator
+======================================================================
+
+--- [orchestrator] Step 3: draft_customer_notice
+Inputs: {"order_id": "O-1043"}
+Result: Saved customer-O-1043.txt. APPROVED by the reviewer; MARKED FOR A PERSON: order(s) with a late penalty: O-1043.
+
+Dear City of Ashford Bike Share,
+
+We are writing to update you on the status of your order, O-1043, for 100 Commuter E bicycles.
+
+We apologize, but this order is now expected to ship 12 d...
+
+>>> [orchestrator] Choice 4 of at most 10: draft_customer_notice for O-1044
+
+======================================================================
+Customer writer: O-1044
+======================================================================
+
+>>> HANDOFF  orchestrator -> customer-writer: the facts of order O-1044 only
+[customer-writer] tokens for this call (claude-sonnet-5): 407 in / 148 out
+
+[customer-writer] Draft:
+Dear Main Street Bikes,
+
+We're writing to let you know about an update to your order, O-1044, for 30 units of the Cargo E.
+
+We're sorry for the inconvenience this may cause. Due to a delay in a part from one of our suppliers, your order is now expected to ship 8 days later than originally planned.
+
+If you have any questions in the meantime, please don't hesitate to reach out.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 868 in / 270 out
+
+[reviewer] Checking the draft against the rules:
+
+The draft mentions the customer's own order number (O-1044) and details (model, quantity), which is fine since rule 3 restricts supplier drafts, not customer drafts. No supplier or other customer is named (rule 4 satisfied). No cost is mentioned (rule 4 satisfied). No new commitments, discounts, or options are accepted (rule 5 satisfied). Tone is plain and apologetic (rule 6 satisfied). Timing is expressed as "8 days later than originally planned," which is a relative, understandable phrasing (rule 7 satisfied). All numbers (30 units, 8 days) match the facts, and 8 days follows from 26 - 18 = 8 (rule 1 satisfied).
+
+No rules are broken.
+
+VERDICT: APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] supplier names in this customer draft: none
+[code check] other customer names in this customer draft: none
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\customer-O-1044.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\customer-O-1044.txt (APPROVED by the reviewer; not marked).
+
+>>> HANDOFF  review step -> orchestrator: customer-O-1044.txt: APPROVED by the reviewer; not marked
+[customer-writer] tokens used by the customer-writer in this step: 407 in / 148 out (1 call)
+[reviewer] tokens used by the reviewer in this step: 868 in / 270 out (1 call)
+
+======================================================================
+Orchestrator
+======================================================================
+
+--- [orchestrator] Step 4: draft_customer_notice
+Inputs: {"order_id": "O-1044"}
+Result: Saved customer-O-1044.txt. APPROVED by the reviewer; not marked.
+
+Dear Main Street Bikes,
+
+We're writing to let you know about an update to your order, O-1044, for 30 units of the Cargo E.
+
+We're sorry for the inconvenience this may cause. Due to a delay in a part from one of our suppliers, your ord...
+
+>>> [orchestrator] Choice 5 of at most 10: draft_customer_notice for O-1045
+
+======================================================================
+Customer writer: O-1045
+======================================================================
+
+>>> HANDOFF  orchestrator -> customer-writer: the facts of order O-1045 only
+[customer-writer] tokens for this call (claude-sonnet-5): 408 in / 168 out
+
+[customer-writer] Draft:
+Dear Lakeview Rentals,
+
+We're writing to update you on the status of your order, O-1045, for 50 units of the Commuter E.
+
+This order is now expected to ship 5 days later than originally planned, due to a delay in a part from one of our suppliers.
+
+We apologize for the inconvenience this may cause.
+
+We will keep you informed if there is any further change to this timeline. Thank you for your patience and for choosing Brookfield Bicycle Company.
+
+Customer Service, Brookfield Bicycle Company
+
+>>> HANDOFF  customer-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 889 in / 91 out
+
+[reviewer] The draft mentions "a delay in a part from one of our suppliers" without naming a supplier, which is acceptable. It states the delay in relative terms ("5 days later than originally planned") rather than a bare day number, satisfying rule 7.
+
+VERDICT: APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] supplier names in this customer draft: none
+[code check] other customer names in this customer draft: none
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\customer-O-1045.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\customer-O-1045.txt (APPROVED by the reviewer; not marked).
+
+>>> HANDOFF  review step -> orchestrator: customer-O-1045.txt: APPROVED by the reviewer; not marked
+[customer-writer] tokens used by the customer-writer in this step: 408 in / 168 out (1 call)
+[reviewer] tokens used by the reviewer in this step: 889 in / 91 out (1 call)
+
+======================================================================
+Orchestrator
+======================================================================
+
+--- [orchestrator] Step 5: draft_customer_notice
+Inputs: {"order_id": "O-1045"}
+Result: Saved customer-O-1045.txt. APPROVED by the reviewer; not marked.
+
+Dear Lakeview Rentals,
+
+We're writing to update you on the status of your order, O-1045, for 50 units of the Commuter E.
+
+This order is now expected to ship 5 days later than originally planned, due to a delay in a part from one of ou...
+[orchestrator] tokens for this call (claude-sonnet-5): 3,531 in / 397 out
+
+>>> [orchestrator] Choice 6 of at most 10: finish
+
+--- [orchestrator] Step 6: finish
+Inputs: {"summary": "Northgate Drive Systems notified that PO-7781 (400 MC-500 controllers) will arrive as 120 units on schedule and the remaining 280 units 3 weeks late. This delays three downstream orders: O-1043 (City of Ashford Bike Share, 12 days late, carries a late penalty), O-1044 (Main Street Bikes, 8 days late), and O-1045 (Lakeview Rentals, 5 days late). Drafted a supplier reply asking Northgate to explore ways to reduce the delay (e.g., shipping more upfront or pulling forward part of the remaining units) and noting we'll confirm our position this week; it withholds specific customer names pending a decision. Also drafted customer delay notices for all three affected orders, with O-1043 flagged for special attention due to its late penalty. A person should decide how to respond to Northgate's offer to discuss alternatives (especially to protect the penalty-bearing O-1043) and approve/send the drafted communications.", "needs_decision": true}
+Result: Done.
+
+[orchestrator] A tool ended the run. Tool calls used: 6 of 10.
+[orchestrator] Choices, in order: run_supply_analyst, draft_supplier_reply, draft_customer_notice, draft_customer_notice, draft_customer_notice, finish
+
+>>> HANDOFF  orchestrator -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\summary.txt
+
+======================================================================
+Summary
+======================================================================
+Coordinator: orchestrator
+Source email: 01-northgate-controller-delay.eml
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+
+Summary for the purchasing manager:
+Northgate Drive Systems notified that PO-7781 (400 MC-500 controllers) will arrive as 120 units on schedule and the remaining 280 units 3 weeks late. This delays three downstream orders: O-1043 (City of Ashford Bike Share, 12 days late, carries a late penalty), O-1044 (Main Street Bikes, 8 days late), and O-1045 (Lakeview Rentals, 5 days late). Drafted a supplier reply asking Northgate to explore ways to reduce the delay (e.g., shipping more upfront or pulling forward part of the remaining units) and noting we'll confirm our position this week; it withholds specific customer names pending a decision. Also drafted customer delay notices for all three affected orders, with O-1043 flagged for special attention due to its late penalty. A person should decide how to respond to Northgate's offer to discuss alternatives (especially to protect the penalty-bearing O-1043) and approve/send the drafted communications.
+
+Needs a decision by a person: yes
+  - supplier-reply.txt: order(s) with a late penalty: O-1043.
+  - customer-O-1043.txt: order(s) with a late penalty: O-1043.
+
+Drafts (none were sent):
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>: approved, 0 revision(s), MARKED for a person
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example: approved, 0 revision(s), MARKED for a person
+  - customer-O-1044.txt to owner@mainstreetbikes.example: approved, 0 revision(s), not marked
+  - customer-O-1045.txt to info@lakeviewrentals.example: approved, 0 revision(s), not marked
+
+Analyst's brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "PO-7781 will now arrive as 120 units on day 5 (as originally scheduled) and the remaining 280 units on day 26, instead of all 400 arriving on day 5.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Decide how to respond to Karen Walsh's offer to discuss alternative shipment arrangements, since orders O-1043, O-1044, and O-1045 will be delayed (ready day 26) under the current revised schedule.",
+    "Consider whether to prioritize or expedite O-1043 given it carries a late penalty and is now 12 days late."
+  ],
+  "supplier_questions": [
+    "Karen Walsh asked which customers are most affected by the delay, so Northgate can understand the impact on Brookfield's side."
+  ]
+}
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815\summary.txt
+
+======================================================================
+Orchestrator finished
+======================================================================
+Drafts saved (4, none sent), in C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\01-northgate-controller-delay-orchestrator-20261120-100815:
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example
+  - customer-O-1044.txt to owner@mainstreetbikes.example
+  - customer-O-1045.txt to info@lakeviewrentals.example
+
+Drafts marked for a person (2):
+  - supplier-reply.txt: order(s) with a late penalty: O-1043
+  - customer-O-1043.txt: order(s) with a late penalty: O-1043
+
+Decisions for a person (2):
+  - Decide how to respond to Karen Walsh's offer to discuss alternative shipment arrangements, since orders O-1043, O-1044, and O-1045 will be delayed (ready day 26) under the current revised schedule.
+  - Consider whether to prioritize or expedite O-1043 given it carries a late penalty and is now 12 days late.
+
+Tokens by role (input / output, calls):
+  orchestrator        7,306 /     705  (3 calls)
+  analyst             9,931 /     928  (3 calls)
+  supplier-writer       980 /     294  (1 call)
+  reviewer            4,067 /     519  (4 calls)
+  customer-writer     1,225 /     505  (3 calls)
+  total              23,509 /   2,951

@@ -1,0 +1,33 @@
+
+======================================================================
+Orchestrator: 03-keystone-on-schedule.eml
+From: Brian Foley <b.foley@keystonebattery.example>
+Subject: PO-7790 - BP-48 battery packs - shipped on schedule
+======================================================================
+
+--- [orchestrator] Step 1: finish
+Inputs: {"summary": "Keystone Battery Co. (Brian Foley) says PO-7790, for 150 BP-48 battery packs, left their warehouse today and should arrive on the scheduled date. The quantity and timing are unchanged, so no customer orders are affected. I didn't run the supply analyst or draft any replies or customer notices. Nothing needs to be done unless the shipment doesn't arrive on the scheduled date.", "needs_decision": false}
+Result: Done.
+
+[orchestrator] A tool ended the run. Tool calls used: 1 of 15.
+
+======================================================================
+Summary
+======================================================================
+Coordinator: orchestrator
+Source email: 03-keystone-on-schedule.eml
+Subject: PO-7790 - BP-48 battery packs - shipped on schedule
+
+Summary for the purchasing manager:
+Keystone Battery Co. (Brian Foley) says PO-7790, for 150 BP-48 battery packs, left their warehouse today and should arrive on the scheduled date. The quantity and timing are unchanged, so no customer orders are affected. I didn't run the supply analyst or draft any replies or customer notices. Nothing needs to be done unless the shipment doesn't arrive on the scheduled date.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  (none)
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\03-keystone-on-schedule-orchestrator-20261119-165809\summary.txt
+
+Tokens by role (input / output, calls):
+  orchestrator        1,421 /     299  (1 call)
+  total               1,421 /     299

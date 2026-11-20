@@ -1,0 +1,63 @@
+Coordinator: pipeline
+Source email: 01-northgate-controller-delay.eml
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+
+Summary for the purchasing manager:
+Part MC-500: PO-7781 (400 MC-500 motor controllers) will now arrive as 120 units on day 5 (the original date) and the remaining 280 units on day 26 (three weeks later), instead of all 400 on day 5.
+Orders at risk:
+  - O-1043 City of Ashford Bike Share: 10 units short, ship day 14, ready day 26 (late penalty)
+  - O-1044 Main Street Bikes: 30 units short, ship day 18, ready day 26
+  - O-1045 Lakeview Rentals: 50 units short, ship day 21, ready day 26
+Decision needed: Whether to accept the split shipment or take up Karen Walsh's offer this week to discuss other options (e.g., expediting part of the remaining 280 units), given that O-1043 (City of Ashford Bike Share) carries a late penalty and would be 12 days late.
+Decision needed: Whether to tell the at-risk customers (City of Ashford Bike Share, Main Street Bikes, Lakeview Rentals) that their orders may be late.
+Decision needed: Whether and how much customer-impact information to share with Northgate in reply to their request.
+Supplier asked: Please let us know which of your customers are most affected, so we can understand the impact on your side.
+
+Needs a decision by a person: yes
+
+Drafts (none were sent):
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>: approved, 0 revision(s)
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example: approved, 0 revision(s)
+  - customer-O-1044.txt to owner@mainstreetbikes.example: approved, 0 revision(s)
+  - customer-O-1045.txt to info@lakeviewrentals.example: approved, 0 revision(s)
+
+Analyst's brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "PO-7781 (400 MC-500 motor controllers) will now arrive as 120 units on day 5 (the original date) and the remaining 280 units on day 26 (three weeks later), instead of all 400 on day 5.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Whether to accept the split shipment or take up Karen Walsh's offer this week to discuss other options (e.g., expediting part of the remaining 280 units), given that O-1043 (City of Ashford Bike Share) carries a late penalty and would be 12 days late.",
+    "Whether to tell the at-risk customers (City of Ashford Bike Share, Main Street Bikes, Lakeview Rentals) that their orders may be late.",
+    "Whether and how much customer-impact information to share with Northgate in reply to their request."
+  ],
+  "supplier_questions": [
+    "Please let us know which of your customers are most affected, so we can understand the impact on your side."
+  ]
+}

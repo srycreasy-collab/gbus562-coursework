@@ -1,0 +1,68 @@
+Coordinator: orchestrator
+Source email: 01-northgate-controller-delay.eml
+Subject: PO-7781 - MC-500 controllers - revised shipment schedule
+
+Summary for the purchasing manager:
+What changed: Northgate Drive Systems (Karen Walsh) will split PO-7781. 120 of the 400 MC-500 controllers ship on the scheduled date (day 5). The other 280 ship three weeks later (day 26).
+
+Impact: Three orders are 90 units short in total and can't be finished until day 26:
+- O-1043, City of Ashford Bike Share: 10 short, due to ship day 14, 12 days late. This order has a LATE PENALTY.
+- O-1044, Main Street Bikes: 30 short, due to ship day 18, 8 days late.
+- O-1045, Lakeview Rentals: 50 short, due to ship day 21, 5 days late.
+
+Drafted (all reviewed and saved, nothing sent):
+- supplier-reply.txt: asks Northgate to ship 90 more units (210 in total) on the scheduled date, or send them early in a separate shipment. It also accepts Karen's offer of a call this week.
+- customer-O-1043.txt, customer-O-1044.txt and customer-O-1045.txt: delay notices to each customer.
+
+Decisions for you:
+1. Whether to pursue Karen's offer to discuss other options. The aim would be to get units in early, at least the 10 needed by day 14 to avoid the O-1043 penalty.
+2. Whether to tell Northgate which customers are affected. They asked, and the draft reply declines and gives only the total shortfall and delays. Change it if you want to share more.
+3. When to send the customer notices. If Northgate can ship more units early, some delays may shrink or disappear, so you may want to wait for their answer.
+
+Needs a decision by a person: yes
+
+Drafts (none were sent):
+  - supplier-reply.txt to Karen Walsh <k.walsh@northgatedrive.example>: approved, 1 revision(s)
+  - customer-O-1043.txt to fleet@ashfordbikeshare.example: approved, 0 revision(s)
+  - customer-O-1044.txt to owner@mainstreetbikes.example: approved, 0 revision(s)
+  - customer-O-1045.txt to info@lakeviewrentals.example: approved, 0 revision(s)
+
+Analyst's brief:
+{
+  "part_id": "MC-500",
+  "what_changed": "PO-7781 will now deliver 120 of the 400 MC-500 controllers on day 5 as scheduled, with the remaining 280 arriving three weeks later on day 26.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-1043",
+      "customer": "City of Ashford Bike Share",
+      "units_short": 10,
+      "ship_day": 14,
+      "ready_day": 26,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-1044",
+      "customer": "Main Street Bikes",
+      "units_short": 30,
+      "ship_day": 18,
+      "ready_day": 26,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-1045",
+      "customer": "Lakeview Rentals",
+      "units_short": 50,
+      "ship_day": 21,
+      "ready_day": 26,
+      "late_penalty": false
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Whether to take up Karen Walsh's offer to discuss other options this week, for example pulling part of the remaining 280 controllers in before day 14 to protect O-1043 (City of Ashford Bike Share, late penalty, 10 units short).",
+    "Whether to share customer names or impact details with Northgate in reply to their request, and how much to share."
+  ],
+  "supplier_questions": [
+    "Which of Brookfield's customers are most affected by the split shipment?"
+  ]
+}

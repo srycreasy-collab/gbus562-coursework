@@ -1,0 +1,39 @@
+Coordinator: orchestrator
+Source email: 02-kendall-tire-options.eml
+Subject: PO-7795 - TR-29 tires - two options, please choose
+
+Summary for the purchasing manager:
+Kendall Tire Supply can't fulfill PO-7795 (400 TR-29 tires) in one shipment due to equipment downtime, and offered two options: (1) split shipment, 160 now + 240 in two weeks, which keeps all orders on track; or (2) hold and ship all 400 together, 4 days late, which would leave order O-1046 short by 40 units and 3 days late. Supplier defaults to Option 2 if we don't respond within two business days. A reply to the supplier was drafted (approved) acknowledging both options, asking if more tires could ship on schedule, and confirming our preference will follow shortly. No customer notice was drafted yet, since O-1046 is only at risk under Option 2 and choosing Option 1 would avoid the issue entirely. A purchasing manager needs to decide which option to accept and reply to the supplier within the deadline.
+
+Needs a decision by a person: yes
+
+Drafts (none were sent):
+  - supplier-reply.txt to Lisa Moreno <l.moreno@kendalltire.example>: approved, 1 revision(s), not marked
+
+Analyst's brief:
+{
+  "part_id": "TR-29",
+  "what_changed": "PO-7795's 400 tires, originally all arriving on day 8, will instead arrive either as 160 on day 8 and 240 on day 22 (Option 1), or all 400 together on day 12 (Option 2, the supplier's default if no reply is given).",
+  "orders_at_risk": [],
+  "options": [
+    {
+      "name": "Option 1: 160 on day 8, 240 on day 22",
+      "order_ids": [],
+      "supplier_default": false
+    },
+    {
+      "name": "Option 2: All 400 on day 12",
+      "order_ids": [
+        "O-1046"
+      ],
+      "supplier_default": true
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose between Option 1 (split shipment, no orders at risk) and Option 2 (single delayed shipment, puts order O-1046 at risk with 40 units short and 3 days late) — Option 1 appears safer for order coverage.",
+    "Reply to Kendall Tire Supply within two business days, or Option 2 will be applied by default."
+  ],
+  "supplier_questions": [
+    "Which option do you prefer, Option 1 (split shipment) or Option 2 (delayed full shipment)?"
+  ]
+}

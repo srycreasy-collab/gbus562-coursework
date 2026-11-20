@@ -1,0 +1,44 @@
+Coordinator: orchestrator
+Source email: 02-kendall-tire-options.eml
+Subject: PO-7795 - TR-29 tires - two options, please choose
+
+Summary for the purchasing manager:
+Kendall Tire Supply (Lisa Moreno) can't ship all 400 TR-29 tires on PO-7795 on the scheduled day 8 because a mixing machine is down. They offer two options. Option 1: 160 tires on day 8 and 240 on day 22. Option 2: all 400 on day 12. They need an answer within two business days, and if they don't hear back they'll use Option 2.
+
+Impact: Option 1 puts no customer orders at risk. Option 2 would leave order O-1046 (Hilltop Outfitters) 40 tires short on its ship day (day 9). Those tires would be ready on day 12, so the order would ship 3 days late (no late penalty).
+
+DECISION NEEDED: choose Option 1 or Option 2 and tell Kendall within two business days. Option 1 avoids any customer delay. If no one replies, Kendall will go with Option 2, which causes the delay.
+
+Drafted: a reply to Kendall (supplier-reply.txt; approved in review, not sent). It confirms the two options, says Brookfield will confirm its choice in time, and asks Kendall two things: whether under Option 2 they could ship at least 40 tires on the scheduled date, and whether under Option 1 any of the remaining 240 could ship sooner. Add your chosen option before sending. No customer notice was drafted, because O-1046 is only at risk under Option 2, and choosing Option 1 avoids the delay.
+
+Needs a decision by a person: yes
+
+Drafts (none were sent):
+  - supplier-reply.txt to Lisa Moreno <l.moreno@kendalltire.example>: approved, 0 revision(s)
+
+Analyst's brief:
+{
+  "part_id": "TR-29",
+  "what_changed": "Instead of all 400 TR-29 tires on PO-7795 arriving on day 8, Kendall offers either 160 on day 8 and 240 on day 22 (Option 1), or all 400 on day 12 (Option 2, the default if Brookfield doesn't reply).",
+  "orders_at_risk": [],
+  "options": [
+    {
+      "name": "Option 1: Ship 160 tires on the scheduled date (day 8) and the remaining 240 two weeks later (day 22)",
+      "order_ids": [],
+      "supplier_default": false
+    },
+    {
+      "name": "Option 2: Hold the order and ship all 400 tires together four days after the scheduled date (day 12)",
+      "order_ids": [
+        "O-1046"
+      ],
+      "supplier_default": true
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose Option 1 or Option 2 for PO-7795 and tell Kendall Tire Supply within two business days; if Brookfield doesn't reply, Kendall will go with Option 2. Option 1 puts no orders at risk. Option 2 puts O-1046 (Hilltop Outfitters) at risk: 40 tires short on its ship day (day 9), ready on day 12, 3 days late, no late penalty."
+  ],
+  "supplier_questions": [
+    "Which option do you prefer (Option 1 or Option 2)? Please reply within two business days."
+  ]
+}

@@ -1,0 +1,15 @@
+DRAFT - NOT SENT
+To: owner@mainstreetbikes.example
+Subject: Your order O-1044: updated ship date
+Review: APPROVED by the reviewer
+Source email: 01-northgate-controller-delay.eml
+
+Dear Main Street Bikes team,
+
+We're writing about your order O-1044 for 30 Cargo E bicycles. Because of a delay in a part from one of our suppliers, we now expect your order to ship 8 days later than planned.
+
+We're sorry for the inconvenience this causes.
+
+If you have any questions about your order, please reply to this email.
+
+Customer Service, Brookfield Bicycle Company
