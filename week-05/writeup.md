@@ -1,5 +1,5 @@
 ## What I Built
-I used the same build as Brookline, but, by adding Copperline, Claude identified a few suggestions for fixing prompts. For most suggestions, I took Claude's advice, which would alter the prompt for both companies. I did not rerun all of Brookline in the interest of cost, but did rerun Copperline multiple times as I made adjustments to the prompts.
+I used the same build as Brookfield, but, by adding Copperline, Claude identified a few suggestions for fixing prompts. For most suggestions, I took Claude's advice, which would alter the prompt for both companies. I did not rerun all of Brookline in the interest of cost, but did rerun Copperline multiple times as I made adjustments to the prompts.
 
 ## Why This Approach
 Four labeled lines about other work at Copperline.
