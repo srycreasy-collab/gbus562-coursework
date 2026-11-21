@@ -1,0 +1,23 @@
+Coordinator: orchestrator
+Source email: 03-ashgrove-burr-delay.eml
+Subject: PO-5531 - BR-64 burr sets - arriving 3 days late
+
+Summary for the purchasing manager:
+Ashgrove Precision reported PO-5531 (120 BR-64 burr sets) will arrive 3 days late (day 13 instead of day 10) due to an unplanned furnace repair; full quantity still ships together. The analyst found no customer orders at risk from this delay, so no customer notices were needed. A reply to Priya confirming receipt of the update and stating it causes no problems on Copperline's side was drafted and approved.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  - supplier-reply.txt to Priya Raman <p.raman@ashgroveprecision.example>: approved, 0 revision(s), not marked
+
+Analyst's brief:
+{
+  "part_id": "BR-64",
+  "what_changed": "PO-5531's 120 BR-64 burr sets will now arrive together on day 13 instead of day 10, a 3-day delay.",
+  "orders_at_risk": [],
+  "options": [],
+  "decisions_for_a_person": [],
+  "supplier_questions": [
+    "Priya Raman asked whether the 3-day delay causes any problems on Copperline's side."
+  ]
+}

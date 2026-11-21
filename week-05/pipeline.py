@@ -1,4 +1,4 @@
-"""Coordinator 1: a fixed pipeline that prepares Brookfield's response to one supplier email.
+"""Coordinator 1: a fixed pipeline that prepares a company's response to one supplier email.
 
 The same steps run for every email, in this order:
 
@@ -11,16 +11,18 @@ The same steps run for every email, in this order:
                            NO REPLY NEEDED.
 
 Every draft goes through the review step in specialists.py (reviewer, up to two
-revisions, name check in code) and is saved to week-05/drafts/<email>-pipeline-<time>/.
-Nothing is ever sent. At the end the pipeline prints a summary: drafts saved, drafts
-marked for a person, decisions for a person, and total tokens.
+revisions, name check in code) and is saved to
+week-05/drafts/<company folder>/<email>-pipeline-<time>/. Nothing is ever sent. At the
+end the pipeline prints a summary: drafts saved, drafts marked for a person, decisions
+for a person, and total tokens.
 
 Run from the top of the repository:
 
     .venv\\Scripts\\python.exe week-05\\pipeline.py --email week-05\\brookfield-bikes\\supplier-emails\\01-northgate-controller-delay.eml
+    .venv\\Scripts\\python.exe week-05\\pipeline.py --org week-05\\copperline-coffee --email week-05\\copperline-coffee\\supplier-emails\\01-danforth-pump-delay.eml
 
-Add --save FILE to also write everything printed to FILE (UTF-8), and --company FOLDER to
-use another company's folder laid out like week-05/brookfield-bikes.
+--org FOLDER names a company folder laid out like week-05/brookfield-bikes (the default).
+Add --save FILE to also write everything printed to FILE (UTF-8).
 """
 
 import sys
@@ -43,7 +45,7 @@ def pipeline_summary(team):
                 f"ship day {row.get('ship_day')}, ready day {row.get('ready_day')}{penalty_text}"
             )
     else:
-        lines.append("No customer orders are at risk whatever Brookfield decides.")
+        lines.append(f"No customer orders are at risk whatever {team.name} decides.")
     for option in brief["options"]:
         if isinstance(option, dict):
             ids = ", ".join(option_order_ids(option)) or "none"
@@ -99,7 +101,7 @@ async def coordinate(client, usage, company_dir, email, email_path):
             await team.draft_customer_notice(order_id)
     else:
         banner("Customer writer")
-        print("No orders are at risk whatever Brookfield decides, so no customer notices are drafted.")
+        print(f"No orders are at risk whatever {team.name} decides, so no customer notices are drafted.")
 
     # 3. The reply to the supplier.
     await team.draft_supplier_reply()
@@ -110,4 +112,4 @@ async def coordinate(client, usage, company_dir, email, email_path):
 
 
 if __name__ == "__main__":
-    sys.exit(run_cli("Fixed pipeline: prepare Brookfield's response to one supplier email.", coordinate))
+    sys.exit(run_cli("Fixed pipeline: prepare a company's response to one supplier email.", coordinate))

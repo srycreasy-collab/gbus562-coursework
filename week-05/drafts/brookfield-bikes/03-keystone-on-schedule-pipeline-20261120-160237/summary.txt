@@ -1,0 +1,22 @@
+Coordinator: pipeline
+Source email: 03-keystone-on-schedule.eml
+Subject: PO-7790 - BP-48 battery packs - shipped on schedule
+
+Summary for the purchasing manager:
+Part BP-48: No change: PO-7790 (150 units) is confirmed still arriving on its originally scheduled day, 6 days from today.
+No customer orders are at risk whatever Brookfield decides.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  (none)
+
+Analyst's brief:
+{
+  "part_id": "BP-48",
+  "what_changed": "No change: PO-7790 (150 units) is confirmed still arriving on its originally scheduled day, 6 days from today.",
+  "orders_at_risk": [],
+  "options": [],
+  "decisions_for_a_person": [],
+  "supplier_questions": []
+}

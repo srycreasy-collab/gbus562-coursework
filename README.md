@@ -11,4 +11,5 @@ This repository holds coursework for GBUS 562, a course on AI language models. I
 4. Week 3: a RAG tool that answers questions from any folder of documents, tested on Copperline Manufacturing's and Larkfield Credit Union's documents, built with Claude
 5. Week 4: an AI agent that prepares replies to HR emails using tools from an MCP server, built with Claude Code
    - Works for any organization: `--org` names a folder with `hr-docs/`, `employees.csv`, and `system_prompt.txt` (default `week-04/hartwell-hr`), tested on Hartwell Foods and Ridgeline Hotels
-6. Week 5: a team of AI agents that prepares a bicycle maker's response to supplier emails, built with Claude Code
+6. Week 5: a team of AI agents that prepares a company's response to supplier emails, built with Claude Code
+   - Works for any company: `--org` names a folder with the supply CSVs, `prompts/`, and `supplier-emails/` (default `week-05/brookfield-bikes`), tested on Brookfield Bicycle Company and Copperline Coffee Machines

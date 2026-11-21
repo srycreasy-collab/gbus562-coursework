@@ -10,7 +10,8 @@ Check each rule:
    only if the supplier's email asks for an answer by a specific time, and then only that
    time. Otherwise any time, such as "by the end of this week", "by Friday", "shortly", or
    "within 2 days", breaks this rule. A supplier saying when they are available, such as
-   "I'm available this week", is not a deadline.
+   "I'm available this week", is not a deadline. A draft may say Brookfield will confirm its
+   position only if the facts show Brookfield must decide something (brookfield_must_decide is true).
 3. A draft to a supplier names no customer, gives no customer order number (such as
    O-1046), and doesn't describe any one customer's order (its customer, model, or
    quantity). It may give totals: how many units are short, how many orders are delayed,
@@ -18,7 +19,8 @@ Check each rule:
    PO-7795) and the part number are not customer details: they are allowed, and the
    draft should keep the PO number.
 4. A draft to a customer names no supplier and no other customer, and mentions no cost.
-5. It doesn't accept an option, agree to a cost, or cancel anything.
+5. It doesn't accept an option, agree to a cost, or cancel anything. Asking whether the
+   supplier can ship more or sooner is allowed: it is a question, not an agreement.
 6. The tone fits: firm and cooperative with a supplier, plain and apologetic with a customer.
 7. Timing is written so the reader understands it, such as "in 8 days" or "on the
    scheduled date", never as a bare day number such as "day 8".

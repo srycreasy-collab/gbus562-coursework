@@ -1,0 +1,58 @@
+Coordinator: pipeline
+Source email: 02-marlow-boiler-options.eml
+Subject: PO-5520 - BL-12 boilers - please choose a shipping option
+
+Summary for the purchasing manager:
+Part BL-12: PO-5520 (200 BL-12 boilers, originally due day 7) will be split or delayed: Option A ships 80 on day 7 and 120 on day 21, Option B ships all 200 on day 13; if no choice is made the supplier will default to Option B.
+Orders at risk:
+  - O-2203 Elm State University Dining: 40 units short, ship day 12, ready day 13 (late penalty)
+Option A: 80 units on day 7, 120 units on day 21: puts at risk O-2205
+Option B: all 200 units on day 13 (default if no response): puts at risk O-2203
+Decision needed: Choose between Option A (puts order O-2205, Tall Pines Coffee House, at risk - 5 units short, 4 days late, late_penalty applies) and Option B (puts order O-2203, Elm State University Dining, at risk - 40 units short, 1 day late, late_penalty applies).
+Decision needed: Respond to Marlow Metalworks within three business days, or Option B will be applied by default.
+Supplier asked: Which shipping option (A or B) would Copperline like for PO-5520?
+
+Needs a decision by a person: yes
+  - customer-O-2203.txt: order(s) with a late penalty: O-2203.
+  - supplier-reply.txt: order(s) with a late penalty: O-2203, O-2205.
+
+Drafts (none were sent):
+  - customer-O-2203.txt to dining@elmstate.example: approved, 0 revision(s), MARKED for a person
+  - supplier-reply.txt to Victor Lindqvist <v.lindqvist@marlowmetal.example>: approved, 1 revision(s), MARKED for a person
+
+Analyst's brief:
+{
+  "part_id": "BL-12",
+  "what_changed": "PO-5520 (200 BL-12 boilers, originally due day 7) will be split or delayed: Option A ships 80 on day 7 and 120 on day 21, Option B ships all 200 on day 13; if no choice is made the supplier will default to Option B.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-2203",
+      "customer": "Elm State University Dining",
+      "units_short": 40,
+      "ship_day": 12,
+      "ready_day": 13,
+      "late_penalty": true
+    }
+  ],
+  "options": [
+    {
+      "name": "Option A: 80 units on day 7, 120 units on day 21",
+      "order_ids_at_risk": [
+        "O-2205"
+      ]
+    },
+    {
+      "name": "Option B: all 200 units on day 13 (default if no response)",
+      "order_ids_at_risk": [
+        "O-2203"
+      ]
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose between Option A (puts order O-2205, Tall Pines Coffee House, at risk - 5 units short, 4 days late, late_penalty applies) and Option B (puts order O-2203, Elm State University Dining, at risk - 40 units short, 1 day late, late_penalty applies).",
+    "Respond to Marlow Metalworks within three business days, or Option B will be applied by default."
+  ],
+  "supplier_questions": [
+    "Which shipping option (A or B) would Copperline like for PO-5520?"
+  ]
+}

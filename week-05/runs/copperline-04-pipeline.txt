@@ -1,0 +1,137 @@
+
+======================================================================
+Pipeline: 04-pelham-maintenance-closure.eml
+From: Owen Brady <o.brady@pelhamfittings.example>
+Subject: Plant maintenance closure - PO-5540 not affected
+======================================================================
+orders.csv columns: ship_day = ship_by_day, product = product, quantity = units
+
+======================================================================
+Supply analyst
+======================================================================
+
+>>> HANDOFF  pipeline -> analyst: supplier email 04-pelham-maintenance-closure.eml (334 characters)
+[server] orders.csv: ship_day = ship_by_day, product = product, quantity = units
+[server] bill-of-materials.csv: product = product, per_unit = per_unit
+[server] copperline-coffee supply MCP server running.
+Tools offered: check_coverage, get_orders_for_part, get_part
+[analyst] tokens for this call (claude-sonnet-5): 2,076 in / 215 out
+
+--- [analyst] Step 1: get_part
+Inputs: {"part_id": "SW-3"}
+Result: {
+ "part_id": "SW-3",
+ "description": "Steam wand",
+ "supplier": "Pelham Fittings",
+ "on_hand": 40,
+ "scheduled_shipments": [
+  {
+   "po_number": "PO-5540",
+   "supplier": "Pelham Fittings",
+   "qty": 60,
+   "arrives_in_days": 11
+  }
+ ]
+}
+
+--- [analyst] Step 2: get_orders_for_part
+Inputs: {"part_id": "SW-3"}
+Result: {
+ "part_id": "SW-3",
+ "orders": [
+  {
+   "order_id": "O-2202",
+   "customer": "Harbor Hotel Group",
+   "product": "Cafe Duo",
+   "units_ordered": 15,
+   "parts_needed": 15,
+   "ship_day": 9,
+   "late_penalty": false
+  },
+  {
+   "order_id": "O-2204",
+   "customer": "Kettle & Crumb Bakery",
+   "produ...
+[analyst] tokens for this call (claude-sonnet-5): 2,811 in / 316 out
+
+[analyst] Claude finished without asking for another tool. Tool calls used: 2 of 10.
+
+[analyst] Brief:
+{
+  "part_id": "SW-3",
+  "what_changed": "No change: PO-5540's 60 SW-3 steam wands remain scheduled to arrive on day 11, before the supplier's week-long maintenance closure starting on day 28.",
+  "orders_at_risk": [],
+  "options": [],
+  "decisions_for_a_person": [],
+  "supplier_questions": []
+}
+[analyst] Every order at risk in the brief matches a check_coverage result.
+[analyst] tokens used by the analyst in this step: 4,887 in / 531 out (2 calls)
+
+>>> HANDOFF  analyst -> pipeline: JSON brief: 0 order(s) at risk, 0 option(s), 0 decision(s) for a person
+
+======================================================================
+Customer writer
+======================================================================
+No orders are at risk whatever Copperline decides, so no customer notices are drafted.
+
+======================================================================
+Supplier writer
+======================================================================
+
+>>> HANDOFF  pipeline -> supplier-writer: the supplier email and the brief, with customer names and order numbers removed
+[supplier-writer] tokens for this call (claude-sonnet-5): 1,162 in / 13 out
+
+[supplier-writer] Draft written (15 characters).
+
+[supplier-writer] No reply is needed, so nothing is reviewed or saved.
+[supplier-writer] tokens used by the supplier-writer in this step: 1,162 in / 13 out (1 call)
+
+>>> HANDOFF  supplier-writer -> pipeline: NO REPLY NEEDED
+
+>>> HANDOFF  pipeline -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\04-pelham-maintenance-closure-pipeline-20261120-155601\summary.txt
+
+======================================================================
+Summary
+======================================================================
+Coordinator: pipeline
+Source email: 04-pelham-maintenance-closure.eml
+Subject: Plant maintenance closure - PO-5540 not affected
+
+Summary for the purchasing manager:
+Part SW-3: No change: PO-5540's 60 SW-3 steam wands remain scheduled to arrive on day 11, before the supplier's week-long maintenance closure starting on day 28.
+No customer orders are at risk whatever Copperline decides.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  (none)
+
+Analyst's brief:
+{
+  "part_id": "SW-3",
+  "what_changed": "No change: PO-5540's 60 SW-3 steam wands remain scheduled to arrive on day 11, before the supplier's week-long maintenance closure starting on day 28.",
+  "orders_at_risk": [],
+  "options": [],
+  "decisions_for_a_person": [],
+  "supplier_questions": []
+}
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\04-pelham-maintenance-closure-pipeline-20261120-155601\summary.txt
+
+======================================================================
+Pipeline finished
+======================================================================
+Drafts saved (0, none sent), in C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\04-pelham-maintenance-closure-pipeline-20261120-155601:
+  (none)
+
+Drafts marked for a person (0):
+  (none)
+
+Decisions for a person (0):
+  (none)
+
+Tokens by role (input / output, calls):
+  analyst             4,887 /     531  (2 calls)
+  supplier-writer     1,162 /      13  (1 call)
+  total               6,049 /     544

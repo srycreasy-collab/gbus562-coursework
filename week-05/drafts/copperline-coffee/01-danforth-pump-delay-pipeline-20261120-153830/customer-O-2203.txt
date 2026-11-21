@@ -1,0 +1,18 @@
+*** FOR A PERSON TO CHECK BEFORE SENDING: order(s) with a late penalty: O-2203 ***
+DRAFT - NOT SENT
+To: dining@elmstate.example
+Subject: Your order O-2203: updated ship date
+Review: APPROVED by the reviewer
+Source email: 01-danforth-pump-delay.eml
+
+Subject: Update on Your Order O-2203
+
+Dear Elm State University Dining,
+
+We're writing to let you know that your order (O-2203) for 50 Cafe One machines is now expected to ship 7 days later than originally planned. The order was originally scheduled to ship in 12 days, and is now expected to ship in 19 days.
+
+We apologize for this delay. It is due to a delay in a part from one of our suppliers.
+
+We understand timing is important for your operations and appreciate your patience. If you have any questions about your order, please don't hesitate to reach out.
+
+Customer Service, Copperline Coffee Machines

@@ -1,0 +1,41 @@
+Coordinator: orchestrator
+Source email: 02-marlow-boiler-options.eml
+Subject: PO-5520 - BL-12 boilers - please choose a shipping option
+
+Summary for the purchasing manager:
+Marlow Metalworks can't ship PO-5520 (200 BL-12 boilers) complete on time due to reduced capacity. Option A: 80 units on time, 120 two weeks late (risks order O-2205, Tall Pines Coffee House - 5 units short, 4 days late, penalty applies). Option B (supplier's default if no reply in 3 business days): all 200 units 6 days late (risks order O-2203, Elm State University Dining - 40 units short, 1 day late, penalty applies). No customer notices were drafted since each order is only at risk under one option, and choosing the better option may avoid delay for that order. A person needs to pick an option and reply to the supplier within 3 business days.
+
+Needs a decision by a person: yes
+
+Drafts (none were sent):
+  (none)
+
+Analyst's brief:
+{
+  "part_id": "BL-12",
+  "what_changed": "Instead of all 200 boilers arriving on day 7, the supplier will either ship 80 on day 7 and 120 on day 21 (Option A), or all 200 together on day 13 (Option B).",
+  "orders_at_risk": [],
+  "options": [
+    {
+      "name": "Option A: 80 on day 7, 120 on day 21",
+      "order_ids": [
+        "O-2205"
+      ],
+      "supplier_default": false
+    },
+    {
+      "name": "Option B: all 200 on day 13",
+      "order_ids": [
+        "O-2203"
+      ],
+      "supplier_default": true
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose between Option A (risks order O-2205, Tall Pines Coffee House, 5 units short, 4 days late, late penalty applies) and Option B (risks order O-2203, Elm State University Dining, 40 units short, 1 day late, late penalty applies).",
+    "Reply to Victor Lindqvist within three business days or Option B will be used by default."
+  ],
+  "supplier_questions": [
+    "Which shipping option (A or B) would Copperline like for PO-5520?"
+  ]
+}

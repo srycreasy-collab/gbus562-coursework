@@ -1,0 +1,22 @@
+*** FOR A PERSON TO CHECK BEFORE SENDING: order(s) with a late penalty: O-2203, O-2205 ***
+DRAFT - NOT SENT
+To: Victor Lindqvist <v.lindqvist@marlowmetal.example>
+Subject: Re: PO-5520 - BL-12 boilers - please choose a shipping option
+Review: APPROVED by the reviewer
+Source email: 02-marlow-boiler-options.eml
+
+Hi Victor,
+
+Thanks for the update on PO-5520. Understood that the welding cell is running at half capacity and you can't ship the full 200 boilers on the scheduled date.
+
+As we understand it, the two options are:
+
+- Option A: 80 boilers on the scheduled date, remaining 120 two weeks later. This would leave us short 5 units on one order, delaying it by 4 days.
+- Option B: all 200 boilers together, six days after the scheduled date. This would leave us short 40 units on one order, delaying it by 1 day.
+
+Before we decide, is there any way to increase the quantity on the first shipment under Option A, or pull in the six-day delay under Option B? Either would reduce the impact on our side.
+
+We will confirm our choice within three business days.
+
+Best,
+Purchasing, Copperline Coffee Machines

@@ -1,0 +1,283 @@
+
+======================================================================
+Pipeline: 02-marlow-boiler-options.eml
+From: Victor Lindqvist <v.lindqvist@marlowmetal.example>
+Subject: PO-5520 - BL-12 boilers - please choose a shipping option
+======================================================================
+orders.csv columns: ship_day = ship_by_day, product = product, quantity = units
+
+======================================================================
+Supply analyst
+======================================================================
+
+>>> HANDOFF  pipeline -> analyst: supplier email 02-marlow-boiler-options.eml (532 characters)
+[server] orders.csv: ship_day = ship_by_day, product = product, quantity = units
+[server] bill-of-materials.csv: product = product, per_unit = per_unit
+[server] copperline-coffee supply MCP server running.
+Tools offered: check_coverage, get_orders_for_part, get_part
+[analyst] tokens for this call (claude-sonnet-5): 2,161 in / 145 out
+
+--- [analyst] Step 1: get_part
+Inputs: {"part_id": "BL-12"}
+Result: {
+ "part_id": "BL-12",
+ "description": "1.2-liter boiler",
+ "supplier": "Marlow Metalworks",
+ "on_hand": 60,
+ "scheduled_shipments": [
+  {
+   "po_number": "PO-5520",
+   "supplier": "Marlow Metalworks",
+   "qty": 200,
+   "arrives_in_days": 7
+  }
+ ]
+}
+
+--- [analyst] Step 2: get_orders_for_part
+Inputs: {"part_id": "BL-12"}
+Result: {
+ "part_id": "BL-12",
+ "orders": [
+  {
+   "order_id": "O-2201",
+   "customer": "Morning Ritual Cafe",
+   "product": "Cafe One",
+   "units_ordered": 20,
+   "parts_needed": 20,
+   "ship_day": 6,
+   "late_penalty": false
+  },
+  {
+   "order_id": "O-2202",
+   "customer": "Harbor Hotel Group",
+   "produc...
+[analyst] tokens for this call (claude-sonnet-5): 3,207 in / 357 out
+
+--- [analyst] Step 3: check_coverage
+Inputs: {"part_id": "BL-12", "po_number": "PO-5520", "revised_shipments": [{"qty": 80, "arrives_in_days": 7}, {"qty": 120, "arrives_in_days": 21}]}
+Result: {
+ "part_id": "BL-12",
+ "po_number": "PO-5520",
+ "current_shipment": {
+  "qty": 200,
+  "arrives_in_days": 7
+ },
+ "revised_shipments": [
+  {
+   "qty": 80,
+   "arrives_in_days": 7
+  },
+  {
+   "qty": 120,
+   "arrives_in_days": 21
+  }
+ ],
+ "revised_total": 200,
+ "on_hand": 60,
+ "other_shipments": [],
+ "...
+
+--- [analyst] Step 4: check_coverage
+Inputs: {"part_id": "BL-12", "po_number": "PO-5520", "revised_shipments": [{"qty": 200, "arrives_in_days": 13}]}
+Result: {
+ "part_id": "BL-12",
+ "po_number": "PO-5520",
+ "current_shipment": {
+  "qty": 200,
+  "arrives_in_days": 7
+ },
+ "revised_shipments": [
+  {
+   "qty": 200,
+   "arrives_in_days": 13
+  }
+ ],
+ "revised_total": 200,
+ "on_hand": 60,
+ "other_shipments": [],
+ "allocation_rule": "Stock goes to orders by ship...
+[analyst] tokens for this call (claude-sonnet-5): 6,118 in / 484 out
+
+[analyst] Claude finished without asking for another tool. Tool calls used: 4 of 10.
+
+[analyst] Brief:
+{
+  "part_id": "BL-12",
+  "what_changed": "PO-5520's 200 BL-12 boilers, originally arriving in 7 days, will now ship in two options: Option A splits it into 80 arriving in 7 days and 120 arriving in 21 days, while Option B ships all 200 together in 13 days.",
+  "orders_at_risk": [],
+  "options": [
+    {
+      "name": "Option A: 80 on day 7, 120 on day 21",
+      "order_ids": [
+        "O-2205"
+      ],
+      "supplier_default": false
+    },
+    {
+      "name": "Option B: 200 together on day 13",
+      "order_ids": [
+        "O-2203"
+      ],
+      "supplier_default": true
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose between Option A (puts order O-2205, Tall Pines Coffee House, 4 days late, 5 units short, at risk) and Option B (puts order O-2203, Elm State University Dining, 1 day late, 40 units short, at risk, with a late penalty).",
+    "Respond to Marlow Metalworks within three business days, or Option B will be applied by default."
+  ],
+  "supplier_questions": [
+    "Which shipping option (A or B) would Copperline like for PO-5520?"
+  ]
+}
+[analyst] Every order at risk in the brief matches a check_coverage result.
+[analyst] tokens used by the analyst in this step: 11,486 in / 986 out (3 calls)
+
+>>> HANDOFF  analyst -> pipeline: JSON brief: 0 order(s) at risk, 2 option(s), 2 decision(s) for a person
+
+======================================================================
+Customer writer
+======================================================================
+No orders are at risk whatever Copperline decides, so no customer notices are drafted.
+
+======================================================================
+Supplier writer
+======================================================================
+
+>>> HANDOFF  pipeline -> supplier-writer: the supplier email and the brief, with customer names and order numbers removed
+[supplier-writer] tokens for this call (claude-sonnet-5): 1,014 in / 246 out
+
+[supplier-writer] Draft written (699 characters).
+
+>>> HANDOFF  supplier-writer -> reviewer: draft and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 1,279 in / 414 out
+
+[reviewer] REVISE
+
+1. The draft mentions "delay one order by 4 days" / "1 day" and "5 units short"/"40 units short" — these figures are derived from internal impact analysis comparing against customer orders, which is not something to share with the supplier; also check these numbers aren't simple arithmetic from facts given to the supplier (they come from internal brief data, not facts stated in Victor's email), so this risks exposing internal customer-order information to a supplier.
+3. The draft implicitly describes customer order impact ("delay one order," "units short") which relates to Copperline's customer commitments — this describes customer order effects to a supplier, which should not be included.
+5. The draft asks "is there any way to increase the day-7 quantity... or otherwise ship more units sooner?" — this proposes a new option/negotiates a change beyond the two offered, which is not simply accepting or deferring; it risks appearing to negotiate terms not authorized. Remove this request or confirm it's acceptable to ask without committing.
+
+Change: Remove references to internal shortfall/delay figures and any mention of customer order impacts. Keep the reply limited to confirming receipt of the two options and stating that Copperline will respond within three business days, without revealing internal impact data or proposing new shipping terms.
+
+[supplier-writer] Draft sent back for revision 1:
+Hi Victor,
+
+Thanks for the heads-up on PO-5520. To confirm our understanding: Option A would ship 80 boilers on day 7 and the remaining 120 on day 21, while Option B would ship all 200 together on day 13.
+
+Based on our analysis, Option A would leave us 5 units short and delay one order by 4 days, while Option B would leave us 40 units short and delay one order by 1 day. Given these impacts, is there any way to increase the day-7 quantity under Option A, or otherwise ship more units sooner? That would help us reduce the shortfall and delay.
+
+We'll confirm our choice between Option A and Option B within the three business days you've requested.
+
+Regards,
+Purchasing, Copperline Coffee Machines
+
+>>> HANDOFF  reviewer -> supplier-writer: REVISE notes (revision 1 of at most 2)
+[supplier-writer] tokens for this call (claude-sonnet-5): 1,759 in / 288 out
+
+[supplier-writer] Revised draft written (492 characters).
+
+>>> HANDOFF  supplier-writer -> reviewer: draft (revision 1) and the facts it was written from
+[reviewer] tokens for this call (claude-sonnet-5): 1,201 in / 7 out
+
+[reviewer] APPROVE
+
+>>> HANDOFF  reviewer -> review step: APPROVE
+[code check] customer names in this supplier draft: none
+[code check] late penalty on: O-2203, O-2205
+
+>>> HANDOFF  review step -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\02-marlow-boiler-options-pipeline-20261120-152453\supplier-reply.txt
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\02-marlow-boiler-options-pipeline-20261120-152453\supplier-reply.txt (APPROVED by the reviewer (after 1 revision); MARKED FOR A PERSON: order(s) with a late penalty: O-2203, O-2205).
+
+FINAL DRAFT TO SUPPLIER
+Hi Victor,
+
+Thanks for letting us know about PO-5520. To confirm our understanding: Option A would ship 80 boilers on day 7 and the remaining 120 on day 21, while Option B would ship all 200 together on day 13.
+
+If there's any way to ship more boilers sooner than either option currently allows, please let us know, as that would help us.
+
+We'll confirm our choice between Option A and Option B within the three business days you've requested.
+
+Regards,
+Purchasing, Copperline Coffee Machines
+Marked for a person: yes
+
+>>> HANDOFF  review step -> pipeline: supplier-reply.txt: APPROVED by the reviewer (after 1 revision); MARKED FOR A PERSON: order(s) with a late penalty: O-2203, O-2205
+[supplier-writer] tokens used by the supplier-writer in this step: 2,773 in / 534 out (2 calls)
+[reviewer] tokens used by the reviewer in this step: 2,480 in / 421 out (2 calls)
+
+>>> HANDOFF  pipeline -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\02-marlow-boiler-options-pipeline-20261120-152453\summary.txt
+
+======================================================================
+Summary
+======================================================================
+Coordinator: pipeline
+Source email: 02-marlow-boiler-options.eml
+Subject: PO-5520 - BL-12 boilers - please choose a shipping option
+
+Summary for the purchasing manager:
+Part BL-12: PO-5520's 200 BL-12 boilers, originally arriving in 7 days, will now ship in two options: Option A splits it into 80 arriving in 7 days and 120 arriving in 21 days, while Option B ships all 200 together in 13 days.
+No customer orders are at risk whatever Copperline decides.
+Option A: 80 on day 7, 120 on day 21: puts at risk O-2205
+Option B: 200 together on day 13: puts at risk O-2203
+Decision needed: Choose between Option A (puts order O-2205, Tall Pines Coffee House, 4 days late, 5 units short, at risk) and Option B (puts order O-2203, Elm State University Dining, 1 day late, 40 units short, at risk, with a late penalty).
+Decision needed: Respond to Marlow Metalworks within three business days, or Option B will be applied by default.
+Supplier asked: Which shipping option (A or B) would Copperline like for PO-5520?
+
+Needs a decision by a person: yes
+  - supplier-reply.txt: order(s) with a late penalty: O-2203, O-2205.
+
+Drafts (none were sent):
+  - supplier-reply.txt to Victor Lindqvist <v.lindqvist@marlowmetal.example>: approved, 1 revision(s), MARKED for a person
+
+Analyst's brief:
+{
+  "part_id": "BL-12",
+  "what_changed": "PO-5520's 200 BL-12 boilers, originally arriving in 7 days, will now ship in two options: Option A splits it into 80 arriving in 7 days and 120 arriving in 21 days, while Option B ships all 200 together in 13 days.",
+  "orders_at_risk": [],
+  "options": [
+    {
+      "name": "Option A: 80 on day 7, 120 on day 21",
+      "order_ids": [
+        "O-2205"
+      ],
+      "supplier_default": false
+    },
+    {
+      "name": "Option B: 200 together on day 13",
+      "order_ids": [
+        "O-2203"
+      ],
+      "supplier_default": true
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose between Option A (puts order O-2205, Tall Pines Coffee House, 4 days late, 5 units short, at risk) and Option B (puts order O-2203, Elm State University Dining, 1 day late, 40 units short, at risk, with a late penalty).",
+    "Respond to Marlow Metalworks within three business days, or Option B will be applied by default."
+  ],
+  "supplier_questions": [
+    "Which shipping option (A or B) would Copperline like for PO-5520?"
+  ]
+}
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\02-marlow-boiler-options-pipeline-20261120-152453\summary.txt
+
+======================================================================
+Pipeline finished
+======================================================================
+Drafts saved (1, none sent), in C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\02-marlow-boiler-options-pipeline-20261120-152453:
+  - supplier-reply.txt to Victor Lindqvist <v.lindqvist@marlowmetal.example>
+
+Drafts marked for a person (1):
+  - supplier-reply.txt: order(s) with a late penalty: O-2203, O-2205
+
+Decisions for a person (2):
+  - Choose between Option A (puts order O-2205, Tall Pines Coffee House, 4 days late, 5 units short, at risk) and Option B (puts order O-2203, Elm State University Dining, 1 day late, 40 units short, at risk, with a late penalty).
+  - Respond to Marlow Metalworks within three business days, or Option B will be applied by default.
+
+Tokens by role (input / output, calls):
+  analyst            11,486 /     986  (3 calls)
+  supplier-writer     2,773 /     534  (2 calls)
+  reviewer            2,480 /     421  (2 calls)
+  total              16,739 /   1,941

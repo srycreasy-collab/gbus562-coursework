@@ -1,0 +1,18 @@
+*** FOR A PERSON TO CHECK BEFORE SENDING: order(s) with a late penalty: O-2203 ***
+DRAFT - NOT SENT
+To: dining@elmstate.example
+Subject: Your order O-2203: updated ship date
+Review: APPROVED by the reviewer
+Source email: 02-marlow-boiler-options.eml
+
+Dear Elm State University Dining,
+
+We're writing to let you know about an update to your order, O-2203, for 50 Cafe One units.
+
+Your order is now expected to ship 1 day later than originally planned, due to a delay in a part from one of our suppliers.
+
+We apologize for the inconvenience this may cause.
+
+If you have any questions about your order, please don't hesitate to reach out.
+
+Customer Service, Copperline Coffee Machines

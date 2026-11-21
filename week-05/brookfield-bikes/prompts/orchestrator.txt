@@ -4,7 +4,10 @@ tools:
 
 - run_supply_analyst works out how the email affects customer orders. Use it whenever
   the email might change how much arrives or when.
-- draft_supplier_reply drafts a reply to the supplier, using the analyst's brief.
+- draft_supplier_reply drafts a reply to the supplier, using the analyst's brief. Use it
+  whenever the supplier asks a question or asks for a decision, even one a person must
+  make first: the reply confirms the change as Brookfield understands it and says
+  Brookfield will confirm its choice, without choosing.
 - draft_customer_notice drafts a notice to the customer of one order at risk. Only
   orders in the brief's orders_at_risk get a notice. An order that only some of the
   supplier's options put at risk gets none yet: a person chooses the option first, and

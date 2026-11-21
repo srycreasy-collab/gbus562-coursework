@@ -1,0 +1,11 @@
+Coordinator: orchestrator
+Source email: 04-pelham-maintenance-closure.eml
+Subject: Plant maintenance closure - PO-5540 not affected
+
+Summary for the purchasing manager:
+Pelham Fittings notified of a one-week plant maintenance closure starting in four weeks. They explicitly confirm PO-5540 (60 SW-3 steam wands) ships before the closure and will arrive on schedule, with no action needed from Copperline. No order impact, no supplier question, and no customer-facing change — no drafts were needed.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  (none)

@@ -1,12 +1,18 @@
 """MCP server with a company's supply data tools, for the supply analyst.
 
-The company is a folder laid out like week-05/brookfield-bikes (--company names it;
-that folder is the default):
+The company is a folder laid out like week-05/brookfield-bikes (--org names it; that
+folder is the default):
 
     parts.csv              part_id, description, on_hand, supplier
     inbound.csv            po_number, part_id, supplier, qty, arrives_in_days
-    orders.csv             order_id, customer, contact_email, model, qty, ship_in_days, late_penalty
-    bill-of-materials.csv  model, part_id, qty_per_bike
+    orders.csv             order_id, customer, contact_email, late_penalty, plus a product,
+                           a quantity, and a ship day column
+    bill-of-materials.csv  part_id, plus a product and a parts-per-unit column
+
+The product, quantity, ship day and parts-per-unit columns go by different names at
+different companies (model/qty/ship_in_days/qty_per_bike at Brookfield,
+product/units/ship_by_day/per_unit at Copperline). columns.py works out which is which
+from each header row.
 
 Days are counted from today, which is day 0.
 
@@ -27,7 +33,7 @@ The CSV files are read again on every call, so edits show up without a restart.
 Run from the top of the repository (normally an MCP client starts it):
 
     .venv\\Scripts\\python.exe week-05\\supply_mcp_server.py
-    .venv\\Scripts\\python.exe week-05\\supply_mcp_server.py --company week-05\\brookfield-bikes
+    .venv\\Scripts\\python.exe week-05\\supply_mcp_server.py --org week-05\\copperline-coffee
 
 Everything it logs goes to stderr, because stdout carries the MCP protocol.
 """
@@ -44,15 +50,19 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp_types import ToolAnnotations
 from pydantic import BaseModel, Field
 
+from columns import ColumnError, bom_columns, is_yes, order_columns
+
 WEEK_DIR = Path(__file__).resolve().parent
 DEFAULT_COMPANY_DIR = WEEK_DIR / "brookfield-bikes"
 
 FILES = {
     "parts.csv": ["part_id", "description", "on_hand", "supplier"],
     "inbound.csv": ["po_number", "part_id", "supplier", "qty", "arrives_in_days"],
-    "orders.csv": ["order_id", "customer", "contact_email", "model", "qty", "ship_in_days", "late_penalty"],
-    "bill-of-materials.csv": ["model", "part_id", "qty_per_bike"],
+    "orders.csv": ["order_id", "customer", "contact_email", "late_penalty"],
+    "bill-of-materials.csv": ["part_id"],
 }
+# The files whose other columns are found from the header row (see columns.py).
+FIND_COLUMNS = {"orders.csv": order_columns, "bill-of-materials.csv": bom_columns}
 
 ALLOCATION_RULE = (
     "Stock goes to orders by ship day, earliest first (ties by order_id). An order is ready "
@@ -78,8 +88,8 @@ class Shipment(BaseModel):
 class Order:
     order_id: str
     customer: str
-    model: str
-    bikes: int
+    product: str
+    units: int
     parts_needed: int
     ship_day: int
     late_penalty: bool
@@ -93,16 +103,30 @@ class Company:
         self.folder = folder
 
     def read(self, name):
+        return self.read_with_columns(name)[0]
+
+    def read_with_columns(self, name):
+        """(rows, columns). columns maps each role (product, quantity...) to its header for
+        the files in FIND_COLUMNS, and is empty for the others."""
         path = self.folder / name
         try:
             with path.open(newline="", encoding="utf-8-sig") as file:
                 reader = csv.DictReader(file)
-                missing = [c for c in FILES[name] if c not in (reader.fieldnames or [])]
+                headers = [(h or "").strip() for h in (reader.fieldnames or [])]
+                reader.fieldnames = headers
+                missing = [c for c in FILES[name] if c not in headers]
                 if missing:
                     raise ToolError(f"{name} is missing the column(s): {', '.join(missing)}")
-                return [{k: (v or "").strip() for k, v in row.items() if k} for row in reader]
+                rows = [{k: (v or "").strip() for k, v in row.items() if k} for row in reader]
         except OSError as error:
             raise ToolError(f"Couldn't read {name}: {error}")
+        columns = {}
+        if name in FIND_COLUMNS:
+            try:
+                columns = FIND_COLUMNS[name](headers, rows)
+            except ColumnError as error:
+                raise ToolError(str(error))
+        return rows, columns
 
     @staticmethod
     def number(row, column, name):
@@ -133,24 +157,27 @@ class Company:
         ]
 
     def orders_for(self, part_id):
-        per_bike = {}
-        for row in self.read("bill-of-materials.csv"):
+        bom, b = self.read_with_columns("bill-of-materials.csv")
+        per_unit = {}
+        for row in bom:
             if row["part_id"].upper() == part_id.upper():
-                per_bike[row["model"]] = self.number(row, "qty_per_bike", "bill-of-materials.csv")
+                per_unit[row[b["product"]]] = self.number(row, b["per_unit"], "bill-of-materials.csv")
+        rows, c = self.read_with_columns("orders.csv")
         orders = []
-        for row in self.read("orders.csv"):
-            if row["model"] not in per_bike:
+        for row in rows:
+            product = row[c["product"]]
+            if product not in per_unit:
                 continue
-            bikes = self.number(row, "qty", "orders.csv")
+            units = self.number(row, c["quantity"], "orders.csv")
             orders.append(
                 Order(
                     order_id=row["order_id"],
                     customer=row["customer"],
-                    model=row["model"],
-                    bikes=bikes,
-                    parts_needed=bikes * per_bike[row["model"]],
-                    ship_day=self.number(row, "ship_in_days", "orders.csv"),
-                    late_penalty=row["late_penalty"].lower() in {"yes", "y", "true", "1"},
+                    product=product,
+                    units=units,
+                    parts_needed=units * per_unit[product],
+                    ship_day=self.number(row, c["ship_day"], "orders.csv"),
+                    late_penalty=is_yes(row["late_penalty"]),
                 )
             )
         orders.sort(key=lambda o: (o.ship_day, o.order_id))
@@ -176,8 +203,8 @@ def allocate(on_hand, shipments, orders):
             {
                 "order_id": order.order_id,
                 "customer": order.customer,
-                "model": order.model,
-                "bikes": order.bikes,
+                "product": order.product,
+                "units_ordered": order.units,
                 "parts_needed": order.parts_needed,
                 "ship_day": order.ship_day,
                 "ready_day": ready_day,
@@ -224,7 +251,7 @@ def build_server(company):
     def get_orders_for_part(part_id: str) -> str:
         """List the open customer orders that need a part, earliest ship day first.
 
-        parts_needed is in part units (bikes times the part's quantity per bike).
+        parts_needed is in part units (units ordered times the part's quantity per unit).
         ship_day is the planned ship day, in days from today.
         """
         part = company.part(part_id)
@@ -235,8 +262,8 @@ def build_server(company):
                 {
                     "order_id": o.order_id,
                     "customer": o.customer,
-                    "model": o.model,
-                    "bikes": o.bikes,
+                    "product": o.product,
+                    "units_ordered": o.units,
                     "parts_needed": o.parts_needed,
                     "ship_day": o.ship_day,
                     "late_penalty": o.late_penalty,
@@ -309,7 +336,9 @@ def resolve_company(value):
 def main():
     parser = argparse.ArgumentParser(description="MCP server with a company's supply data tools.")
     parser.add_argument(
+        "--org",
         "--company",
+        dest="org",
         metavar="FOLDER",
         default=str(DEFAULT_COMPANY_DIR),
         help="company folder holding the four CSV files (default: week-05/brookfield-bikes)",
@@ -317,14 +346,16 @@ def main():
     args = parser.parse_args()
 
     try:
-        folder = resolve_company(args.company)
+        folder = resolve_company(args.org)
         if not folder.is_dir():
-            raise SetupError(f"--company: folder not found: {args.company}")
+            raise SetupError(f"--org: folder not found: {args.org}")
         company = Company(folder)
         for name in FILES:
             if not (folder / name).is_file():
                 raise SetupError(f"Data file not found: {folder / name}")
-            company.read(name)  # checks the columns now, so a bad file stops the server early
+            _, columns = company.read_with_columns(name)  # checks the columns now, so a bad file stops the server early
+            if columns:
+                log(f"{name}: " + ", ".join(f"{role} = {header}" for role, header in columns.items()))
         server = build_server(company)
     except (SetupError, ToolError) as error:
         log(f"Error: {error}")

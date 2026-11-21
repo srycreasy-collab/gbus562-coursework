@@ -1,0 +1,22 @@
+Coordinator: pipeline
+Source email: 04-pelham-maintenance-closure.eml
+Subject: Plant maintenance closure - PO-5540 not affected
+
+Summary for the purchasing manager:
+Part SW-3: No change: PO-5540's 60 SW-3 steam wands still arrive on day 11, unaffected by the supplier's one-week maintenance closure starting in 28 days.
+No customer orders are at risk whatever Copperline decides.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  - supplier-reply.txt to Owen Brady <o.brady@pelhamfittings.example>: approved, 0 revision(s), not marked
+
+Analyst's brief:
+{
+  "part_id": "SW-3",
+  "what_changed": "No change: PO-5540's 60 SW-3 steam wands still arrive on day 11, unaffected by the supplier's one-week maintenance closure starting in 28 days.",
+  "orders_at_risk": [],
+  "options": [],
+  "decisions_for_a_person": [],
+  "supplier_questions": []
+}

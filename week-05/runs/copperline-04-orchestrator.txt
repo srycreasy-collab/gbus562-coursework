@@ -1,0 +1,52 @@
+
+======================================================================
+Orchestrator: 04-pelham-maintenance-closure.eml
+From: Owen Brady <o.brady@pelhamfittings.example>
+Subject: Plant maintenance closure - PO-5540 not affected
+======================================================================
+orders.csv columns: ship_day = ship_by_day, product = product, quantity = units
+[orchestrator] tokens for this call (claude-sonnet-5): 1,575 in / 720 out
+
+>>> [orchestrator] Choice 1 of at most 10: finish
+
+--- [orchestrator] Step 1: finish
+Inputs: {"summary": "Pelham Fittings notified of a one-week plant maintenance closure starting in four weeks. They explicitly confirm PO-5540 (60 SW-3 steam wands) ships before the closure and will arrive on schedule, with no action needed from Copperline. No order impact, no supplier question, and no customer-facing change — no drafts were needed.", "needs_decision": false}
+Result: Done.
+
+[orchestrator] A tool ended the run. Tool calls used: 1 of 10.
+[orchestrator] Choices, in order: finish
+
+>>> HANDOFF  orchestrator -> drafts folder: C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\04-pelham-maintenance-closure-orchestrator-20261120-155658\summary.txt
+
+======================================================================
+Summary
+======================================================================
+Coordinator: orchestrator
+Source email: 04-pelham-maintenance-closure.eml
+Subject: Plant maintenance closure - PO-5540 not affected
+
+Summary for the purchasing manager:
+Pelham Fittings notified of a one-week plant maintenance closure starting in four weeks. They explicitly confirm PO-5540 (60 SW-3 steam wands) ships before the closure and will arrive on schedule, with no action needed from Copperline. No order impact, no supplier question, and no customer-facing change — no drafts were needed.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  (none)
+
+Saved C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\04-pelham-maintenance-closure-orchestrator-20261120-155658\summary.txt
+
+======================================================================
+Orchestrator finished
+======================================================================
+Drafts saved (0, none sent), in C:\Users\srycr\OneDrive\Desktop\GBUS-562-Course\gbus562-coursework\week-05\drafts\copperline-coffee\04-pelham-maintenance-closure-orchestrator-20261120-155658:
+  (none)
+
+Drafts marked for a person (0):
+  (none)
+
+Decisions for a person (0):
+  (none)
+
+Tokens by role (input / output, calls):
+  orchestrator        1,575 /     720  (1 call)
+  total               1,575 /     720

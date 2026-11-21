@@ -1,0 +1,25 @@
+Coordinator: pipeline
+Source email: 03-ashgrove-burr-delay.eml
+Subject: PO-5531 - BR-64 burr sets - arriving 3 days late
+
+Summary for the purchasing manager:
+Part BR-64: PO-5531's shipment of 120 BR-64 burr sets will now arrive on day 13 instead of day 10 (a 3-day delay), with the full quantity shipping together.
+No customer orders are at risk whatever Copperline decides.
+Supplier asked: Please let me know if this causes any problems on your side.
+
+Needs a decision by a person: no
+
+Drafts (none were sent):
+  - supplier-reply.txt to Priya Raman <p.raman@ashgroveprecision.example>: approved, 0 revision(s), not marked
+
+Analyst's brief:
+{
+  "part_id": "BR-64",
+  "what_changed": "PO-5531's shipment of 120 BR-64 burr sets will now arrive on day 13 instead of day 10 (a 3-day delay), with the full quantity shipping together.",
+  "orders_at_risk": [],
+  "options": [],
+  "decisions_for_a_person": [],
+  "supplier_questions": [
+    "Please let me know if this causes any problems on your side."
+  ]
+}

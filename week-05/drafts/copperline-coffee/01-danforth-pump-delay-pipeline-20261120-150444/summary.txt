@@ -1,0 +1,66 @@
+Coordinator: pipeline
+Source email: 01-danforth-pump-delay.eml
+Subject: PO-5512 - PU-20 pumps - partial shipment
+
+Summary for the purchasing manager:
+Part PU-20: Of PO-5512's 200 PU-20 pumps, only 40 will arrive on day 4 as scheduled, with the remaining 160 arriving 15 days later on day 19.
+Orders at risk:
+  - O-2203 Elm State University Dining: 10 units short, ship day 12, ready day 19 (late penalty)
+  - O-2204 Kettle & Crumb Bakery: 20 units short, ship day 15, ready day 19
+  - O-2205 Tall Pines Coffee House: 25 units short, ship day 17, ready day 19 (late penalty)
+Decision needed: Decide whether to expedite or source PU-20 pumps elsewhere to avoid delaying orders O-2203, O-2204, and O-2205.
+Decision needed: Decide whether/how to notify affected customers (especially O-2203 and O-2205, which carry late penalties) about the delay.
+Decision needed: Decide what order/customer information to share with Danforth Pump Works in response to their request.
+Supplier asked: Danforth Pump Works asked for a list of the customer orders these pumps are for, including each customer's name and quantity.
+
+Needs a decision by a person: yes
+  - customer-O-2203.txt: order(s) with a late penalty: O-2203.
+  - customer-O-2205.txt: order(s) with a late penalty: O-2205.
+  - supplier-reply.txt: order(s) with a late penalty: O-2203, O-2205.
+
+Drafts (none were sent):
+  - customer-O-2203.txt to dining@elmstate.example: approved, 0 revision(s), MARKED for a person
+  - customer-O-2204.txt to owner@kettleandcrumb.example: approved, 0 revision(s), not marked
+  - customer-O-2205.txt to hello@tallpinescoffee.example: approved, 0 revision(s), MARKED for a person
+  - supplier-reply.txt to Diane Kessler <d.kessler@danforthpump.example>: approved, 1 revision(s), MARKED for a person
+
+Analyst's brief:
+{
+  "part_id": "PU-20",
+  "what_changed": "Of PO-5512's 200 PU-20 pumps, only 40 will arrive on day 4 as scheduled, with the remaining 160 arriving 15 days later on day 19.",
+  "orders_at_risk": [
+    {
+      "order_id": "O-2203",
+      "customer": "Elm State University Dining",
+      "units_short": 10,
+      "ship_day": 12,
+      "ready_day": 19,
+      "late_penalty": true
+    },
+    {
+      "order_id": "O-2204",
+      "customer": "Kettle & Crumb Bakery",
+      "units_short": 20,
+      "ship_day": 15,
+      "ready_day": 19,
+      "late_penalty": false
+    },
+    {
+      "order_id": "O-2205",
+      "customer": "Tall Pines Coffee House",
+      "units_short": 25,
+      "ship_day": 17,
+      "ready_day": 19,
+      "late_penalty": true
+    }
+  ],
+  "options": [],
+  "decisions_for_a_person": [
+    "Decide whether to expedite or source PU-20 pumps elsewhere to avoid delaying orders O-2203, O-2204, and O-2205.",
+    "Decide whether/how to notify affected customers (especially O-2203 and O-2205, which carry late penalties) about the delay.",
+    "Decide what order/customer information to share with Danforth Pump Works in response to their request."
+  ],
+  "supplier_questions": [
+    "Danforth Pump Works asked for a list of the customer orders these pumps are for, including each customer's name and quantity."
+  ]
+}

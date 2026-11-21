@@ -1,0 +1,41 @@
+Coordinator: orchestrator
+Source email: 02-marlow-boiler-options.eml
+Subject: PO-5520 - BL-12 boilers - please choose a shipping option
+
+Summary for the purchasing manager:
+Marlow Metalworks notified that PO-5520 (200 BL-12 boilers) cannot ship complete on schedule due to reduced welding capacity. Two options offered: (A) 80 units on time + 120 units 2 weeks late, which would leave order O-2205 (Tall Pines Coffee House) 5 units short and 4 days late with a penalty; or (B) all 200 units 6 days late (supplier's default if no response), which would leave order O-2203 (Elm State University Dining) 40 units short and 1 day late with a penalty. A purchasing decision is needed on which option to choose, and a reply must reach Marlow within 3 business days or Option B applies automatically. No drafts were generated yet since the supplier reply content depends on the chosen option, and the customer-notice tool reported no orders currently flagged at risk despite the option-level impacts noted by the analyst - this discrepancy should be checked before notifying Tall Pines or Elm State.
+
+Needs a decision by a person: yes
+
+Drafts (none were sent):
+  (none)
+
+Analyst's brief:
+{
+  "part_id": "BL-12",
+  "what_changed": "PO-5520's 200 BL-12 boilers, originally due in 7 days, will now ship either as 80 units in 7 days plus 120 units in 21 days (Option A), or all 200 units together in 13 days (Option B).",
+  "orders_at_risk": [],
+  "options": [
+    {
+      "name": "Option A: 80 units day 7, 120 units day 21",
+      "order_ids": [
+        "O-2205"
+      ],
+      "supplier_default": false
+    },
+    {
+      "name": "Option B: all 200 units day 13",
+      "order_ids": [
+        "O-2203"
+      ],
+      "supplier_default": true
+    }
+  ],
+  "decisions_for_a_person": [
+    "Choose between Option A (puts order O-2205, Tall Pines Coffee House, 5 units short, 4 days late, late penalty applies, at risk) and Option B (puts order O-2203, Elm State University Dining, 40 units short, 1 day late, late penalty applies, at risk).",
+    "Reply to Marlow Metalworks within three business days or Option B will be applied by default."
+  ],
+  "supplier_questions": [
+    "Which shipping option would you like, Option A or Option B?"
+  ]
+}

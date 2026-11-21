@@ -164,8 +164,13 @@ def resolve_company(value):
         path = WEEK_DIR / path
     path = path.resolve()
     if not path.is_dir():
-        raise AgentError(f"--company: folder not found: {value}")
+        raise AgentError(f"--org: folder not found: {value}")
     return path
+
+
+def company_name(company_dir):
+    """A short name for the company, from its folder: brookfield-bikes -> Brookfield."""
+    return re.split(r"[-_\s]+", company_dir.name)[0].capitalize() or company_dir.name
 
 
 def read_prompt(company_dir, name):
@@ -278,11 +283,15 @@ class LoopResult:
     hit_limit: bool = False  # max_tool_calls was reached; the last message is the tool results
 
 
-async def run_tool_loop(client, usage, role, *, system, messages, tools, handle_tool, effort, max_tool_calls, model=MODEL):
+async def run_tool_loop(
+    client, usage, role, *, system, messages, tools, handle_tool, effort, max_tool_calls, model=MODEL, describe_result=None
+):
     """The agent loop: call Claude, run the tools it asks for, repeat.
 
     messages is extended in place, so a caller can add a user turn and continue.
     handle_tool(name, inputs) is async and returns (text, is_error, stop).
+    describe_result(name, text), if given, returns what to print for a tool result
+    (by default, its first PREVIEW_CHARS characters).
     Ends when Claude answers without a tool request, when a handler returns
     stop=True, or when max_tool_calls tool calls have been used.
     """
@@ -307,7 +316,8 @@ async def run_tool_loop(client, usage, role, *, system, messages, tools, handle_
                 inputs = request.input or {}
                 text, is_error, wants_stop = await handle_tool(request.name, inputs)
                 stop = stop or wants_stop
-                print_step(role, tool_calls, request.name, inputs, text)
+                shown = describe_result(request.name, text) if describe_result else text
+                print_step(role, tool_calls, request.name, inputs, shown)
             results.append({"type": "tool_result", "tool_use_id": request.id, "content": text, "is_error": is_error})
         messages.append({"role": "user", "content": results})
 
@@ -350,10 +360,12 @@ def run_cli(description, coordinate):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--email", required=True, metavar="PATH", help="the supplier email (.eml) to handle")
     parser.add_argument(
+        "--org",
         "--company",
+        dest="org",
         metavar="FOLDER",
         default=str(DEFAULT_COMPANY_DIR),
-        help="company folder with the CSV files and prompts/ (default: week-05/brookfield-bikes)",
+        help="company folder with the five CSV files, prompts/ and supplier-emails/ (default: week-05/brookfield-bikes)",
     )
     parser.add_argument("--save", metavar="FILE", help="also write everything printed to FILE (UTF-8)")
     args = parser.parse_args()
@@ -370,7 +382,7 @@ def run_cli(description, coordinate):
         sys.stderr = Tee(sys.stderr, save_file)
 
     async def run():
-        company_dir = resolve_company(args.company)
+        company_dir = resolve_company(args.org)
         email_path = Path(args.email).resolve()
         email = read_email_file(email_path)
         usage = Usage()
